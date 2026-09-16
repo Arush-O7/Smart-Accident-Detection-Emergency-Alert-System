@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<title>Crash Verdict Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f3f5f6;
+    --panel: #ffffff;
+    --sunken: #eaeef0;
+    --ink: #131a1f;
+    --ink-2: #46525b;
+    --ink-3: #6f7b84;
+    --rule: #d6dde1;
+    --grid: #e7ecef;
+    --accent: #1d4f91;
+    --accent-ink: #ffffff;
+    --h: #2a78d6;
+    --v: #eb6834;
+    --w: #4a3aa7;
+    --crash: #c8372d;
+    --crash-bg: #fbe8e5;
+    --safe: #2a7f50;
+    --safe-bg: #e3f2e8;
+    --warn: #9a6400;
+    --warn-bg: #fbf0d9;
+    --shadow: 0 1px 2px rgba(19, 26, 31, .06), 0 4px 16px rgba(19, 26, 31, .05);
+    --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+    --body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0e1317; --panel: #151c21; --sunken: #10161a; --ink: #e6ecef; --ink-2: #aab5bd; --ink-3: #7c8891;
+      --rule: #27323a; --grid: #1c252c; --accent: #7fb0f0; --accent-ink: #0e1317; --h: #3987e5; --v: #d95926;
+      --w: #9085e9; --crash: #f07064; --crash-bg: #3b1916; --safe: #62c28f; --safe-bg: #13301f;
+      --warn: #e3a93b; --warn-bg: #33270d; --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1317; --panel: #151c21; --sunken: #10161a; --ink: #e6ecef; --ink-2: #aab5bd; --ink-3: #7c8891;
+    --rule: #27323a; --grid: #1c252c; --accent: #7fb0f0; --accent-ink: #0e1317; --h: #3987e5; --v: #d95926;
+    --w: #9085e9; --crash: #f07064; --crash-bg: #3b1916; --safe: #62c28f; --safe-bg: #13301f;
+    --warn: #e3a93b; --warn-bg: #33270d; --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { background: var(--bg); }
+  body { margin: 0; color: var(--ink); font: 16px/1.5 var(--body); padding-inline: 16px; padding-block: 0 48px; }
+  .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+  .stack { display: grid; gap: 20px; min-width: 0; }
+  h1, h2, h3 { font-family: var(--display); font-stretch: 82%; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; line-height: 1.02; }
+  h2 { font-size: 22px; font-weight: 700; }
+  h3 { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+  p { margin: 0; }
+  .mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 14px; }
+  button, select { font: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header.top { padding-block: 28px 4px; display: grid; gap: 14px; }
+  .lede { max-width: 68ch; color: var(--ink-2); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .stat { background: var(--panel); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
+  .stat .value { font: 700 28px/1.1 var(--display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+  .stat .from { font: 400 13px/1.3 var(--mono); color: var(--ink-3); }
+  .stat .label { font-size: 14px; color: var(--ink-2); }
+  @media (max-width: 820px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); overflow-x: auto; }
+  nav.tabs button { background: none; border: 0; border-bottom: 3px solid transparent; color: var(--ink-2); padding: 10px 14px 9px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+  nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+  .panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; box-shadow: var(--shadow); }
+  .pad { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .spread { justify-content: space-between; }
+
+  .btn { border: 1px solid var(--rule); background: var(--panel); color: var(--ink); border-radius: 7px; padding: 7px 14px; cursor: pointer; font-weight: 600; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+  .seg button { border: 0; background: var(--panel); color: var(--ink-2); padding: 6px 11px; cursor: pointer; font: 600 13px/1.2 var(--mono); }
+  .seg button + button { border-left: 1px solid var(--rule); }
+  .seg button[aria-pressed="true"] { background: var(--sunken); color: var(--ink); }
+
+  .chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font: 600 12px/1.6 var(--mono); letter-spacing: .02em; white-space: nowrap; }
+  .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .chip.crash { color: var(--crash); background: var(--crash-bg); }
+  .chip.safe { color: var(--safe); background: var(--safe-bg); }
+  .chip.warn { color: var(--warn); background: var(--warn-bg); }
+  .chip.idle { color: var(--ink-2); background: var(--sunken); }
+
+  .live-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; }
+  @media (max-width: 900px) { .live-grid { grid-template-columns: minmax(0, 1fr); } }
+  canvas { display: block; width: 100%; }
+  #trace { height: 250px; }
+  #timeline { height: 46px; cursor: pointer; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--ink-2); }
+  .legend i { display: inline-block; width: 16px; height: 2px; vertical-align: middle; margin-right: 6px; }
+
+  .verdict { display: grid; gap: 12px; align-content: start; }
+  .verdict-card { border: 1px solid var(--rule); border-radius: 8px; padding: 12px; display: grid; gap: 8px; }
+  .verdict-card.alert { border-color: var(--crash); background: var(--crash-bg); }
+  .big { font: 800 24px/1.1 var(--display); font-stretch: 80%; }
+  .pmeter { display: grid; gap: 4px; }
+  .pmeter .track { height: 10px; background: var(--sunken); border-radius: 5px; position: relative; }
+  .pmeter .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--crash); border-radius: 5px 0 0 5px; transition: width .25s; }
+  .pmeter .mark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink-3); }
+  .bars { display: grid; gap: 5px; }
+  .bar { display: grid; grid-template-columns: 120px minmax(0, 1fr) 46px; gap: 8px; align-items: center; font-size: 12px; }
+  .bar .name { font-family: var(--mono); color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar .track { height: 8px; background: var(--sunken); border-radius: 4px; overflow: hidden; }
+  .bar .fill { height: 100%; background: var(--ink-3); border-radius: 0 4px 4px 0; transition: width .25s; }
+  .bar .pct { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) { .bar .fill, .pmeter .fill { transition: none; } }
+
+  .counts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .counts div { background: var(--sunken); border-radius: 7px; padding: 8px 10px; display: grid; }
+  .counts b { font: 700 20px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+  .counts span { font: 500 11px/1.3 var(--mono); color: var(--ink-3); overflow-wrap: anywhere; }
+  @media (max-width: 640px) { .counts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th { font: 600 12px/1.3 var(--mono); color: var(--ink-3); letter-spacing: .03em; position: sticky; top: 0; background: var(--panel); }
+  td.num, th.num { text-align: right; }
+  tr.best td { background: var(--sunken); font-weight: 600; }
+  .log { max-height: 300px; overflow: auto; }
+
+  .lib { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .lib { grid-template-columns: minmax(0, 1fr); } }
+  .ev-list { display: grid; gap: 6px; max-height: 660px; overflow: auto; padding: 8px; }
+  .ev { text-align: left; border: 1px solid var(--rule); background: var(--panel); border-radius: 8px; padding: 9px 11px; cursor: pointer; display: grid; gap: 4px; color: var(--ink); }
+  .ev[aria-current="true"] { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+  .ev .desc { font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
+  #evtrace { height: 210px; }
+  #evgyro { height: 120px; }
+  .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .kv div { border-top: 1px solid var(--grid); padding-top: 6px; display: grid; }
+  .kv span { font-size: 13px; color: var(--ink-3); }
+  .kv b { font: 600 16px/1.3 var(--mono); }
+
+  .cmp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .cmp-grid { grid-template-columns: minmax(0, 1fr); } }
+  .hbar-chart { display: grid; gap: 4px; }
+  .hbar { display: grid; grid-template-columns: 200px minmax(0, 1fr) 62px; gap: 10px; align-items: center; font-size: 13px; padding: 2px 0; border-radius: 4px; }
+  .hbar:hover { background: var(--sunken); }
+  .hbar .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+  .hbar .track { position: relative; height: 12px; }
+  .hbar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--ink-3) 45%, transparent); border-radius: 0 4px 4px 0; min-width: 2px; }
+  .hbar.sel .fill { background: var(--h); }
+  .hbar.ref .fill { background: repeating-linear-gradient(135deg, var(--sunken) 0 5px, color-mix(in srgb, var(--ink-3) 35%, transparent) 5px 10px); }
+  .hbar.sel .name { color: var(--ink); font-weight: 600; }
+  .hbar .val { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  @media (max-width: 520px) { .hbar { grid-template-columns: 116px minmax(0, 1fr) 54px; } }
+  .cm td { text-align: center; font-family: var(--mono); min-width: 56px; }
+  .cm th[scope="row"] { text-align: right; }
+  .notes li { margin-bottom: 8px; }
+  .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font: 500 12px/1.4 var(--mono); padding: 6px 8px; border-radius: 6px; z-index: 10; max-width: 280px; }
+  footer { color: var(--ink-3); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">LoRa accident detection · two AI models on an ESP32 + MPU6050</span>
+    <h1>Crash, pothole or speed breaker?</h1>
+    <p class="lede">Every jolt above 0.45 g wakes two models on the device. <b>Model A</b> decides whether it was a crash, from 30 accelerometer and 7 gyroscope features — trained on <b>VZCrash</b>, 31,000 real crashes recorded on the road. <b>Model B</b> then names what the jolt actually was: a speed breaker, a pothole, harsh driving or nothing. Everything below runs on data the models never saw.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-live" aria-selected="true" aria-controls="view-live">Live detector</button>
+    <button role="tab" id="tab-lib" aria-selected="false" aria-controls="view-lib">Event library</button>
+    <button role="tab" id="tab-cmp" aria-selected="false" aria-controls="view-cmp">Model comparison</button>
+  </nav>
+
+  <section id="view-live" role="tabpanel" aria-labelledby="tab-live" class="stack">
+    <div class="panel pad row spread">
+      <div class="row">
+        <div class="seg" role="group" aria-label="Signal source">
+          <button id="src-replay" aria-pressed="true">Recorded drive</button>
+          <button id="src-serial" aria-pressed="false">ESP32 over USB</button>
+        </div>
+        <span id="source-note" class="small muted"></span>
+      </div>
+      <div class="row" id="replay-controls">
+        <button class="btn primary" id="play">Play</button>
+        <div class="seg" role="group" aria-label="Playback speed">
+          <button data-speed="1" aria-pressed="false">1×</button>
+          <button data-speed="5" aria-pressed="true">5×</button>
+          <button data-speed="20" aria-pressed="false">20×</button>
+        </div>
+        <button class="btn" id="restart">Restart</button>
+      </div>
+      <div class="row" id="serial-controls" hidden>
+        <button class="btn primary" id="connect">Connect ESP32</button>
+        <span id="serial-status" class="chip idle">not connected</span>
+      </div>
+    </div>
+
+    <div class="live-grid">
+      <div class="panel pad" style="display:grid;gap:10px">
+        <div class="row spread">
+          <h2>Dynamic acceleration</h2>
+          <span class="mono small muted" id="clock">t = 0.0 s</span>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--h)"></i>horizontal (braking, impacts)</span>
+          <span><i style="background:var(--v)"></i>vertical (bumps, potholes)</span>
+          <span><i style="background:var(--ink-3)"></i>0.45 g trigger</span>
+        </div>
+        <canvas id="trace" aria-label="Rolling 10 second accelerometer trace"></canvas>
+        <canvas id="timeline" aria-label="Drive timeline, click to jump"></canvas>
+        <div class="legend small" id="timeline-legend">
+          <span><i style="background:var(--safe);height:8px"></i>AI classified a road event</span>
+          <span><i style="background:var(--crash);height:8px"></i>AI crash alert</span>
+          <span><i style="background:var(--warn);height:8px"></i>old 2.2 g rule alarm</span>
+          <span><i style="background:var(--ink-3);height:8px"></i>ground truth</span>
+        </div>
+        <p class="small muted" id="replay-source"></p>
+      </div>
+
+      <div class="verdict">
+        <div class="verdict-card" id="ai-card">
+          <div class="row spread"><h3>Model A · crash?</h3><span class="chip idle" id="ai-chip">monitoring</span></div>
+          <div class="big" id="ai-label">Waiting for a jolt</div>
+          <div class="pmeter">
+            <div class="track"><span class="fill" id="p-fill" style="width:0%"></span><span class="mark" style="left:80%"></span></div>
+            <div class="row spread small mono muted"><span id="p-value">P(crash) 0.000</span><span>alert at 0.80</span></div>
+          </div>
+          <div class="small muted" id="ai-sub">Wakes on any jolt above 0.45 g.</div>
+        </div>
+        <div class="verdict-card">
+          <h3>Model B · what kind of jolt</h3>
+          <div class="bars" id="road-bars"></div>
+        </div>
+        <div class="verdict-card" id="v1-card">
+          <div class="row spread"><h3>Old rule: |a| &gt; 2.2 g</h3><span class="chip idle" id="v1-chip">0 alarms</span></div>
+          <div class="small muted" id="v1-sub">Every alarm would send an emergency SMS.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel pad" style="display:grid;gap:12px">
+      <div class="row spread"><h2>What the AI saw</h2><span class="small muted" id="log-note"></span></div>
+      <div class="counts" id="counts"></div>
+      <div class="table-wrap log">
+        <table>
+          <thead><tr><th>time</th><th>verdict</th><th class="num">P(crash)</th><th class="num">peak g</th><th>old rule</th><th>ground truth</th></tr></thead>
+          <tbody id="log"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-lib" role="tabpanel" aria-labelledby="tab-lib" hidden>
+    <div class="lib">
+      <div class="panel">
+        <div class="pad" style="padding-bottom:0;display:grid;gap:8px">
+          <h2>Real events</h2>
+          <p class="small muted">Crashes, near misses and normal driving from the VZCrash test split, plus road events from a vehicle the road model never saw.</p>
+        </div>
+        <div class="ev-list" id="ev-list"></div>
+      </div>
+      <div class="panel pad" style="display:grid;gap:14px" id="ev-detail"></div>
+    </div>
+  </section>
+
+  <section id="view-cmp" role="tabpanel" aria-labelledby="tab-cmp" hidden class="stack">
+    <div class="cmp-grid">
+      <div class="panel pad" style="display:grid;gap:12px">
+        <div><h2>Crash detection quality</h2><p class="small muted">Average precision per event on the held-out test split (24,174 events, 4,221 real crashes). Higher is better.</p></div>
+        <div class="hbar-chart" id="chart-ap"></div>
+        <p class="small muted">Hatched bars are the VZCrash authors' own models, scored on the whole dataset; ours only sees events above the 0.45 g trigger.</p>
+      </div>
+      <div class="panel pad" style="display:grid;gap:12px">
+        <div><h2>False alarms per 1,000 events</h2><p class="small muted">At the firmware's alert threshold, P(crash) ≥ 0.80. Lower is better.</p></div>
+        <div class="hbar-chart" id="chart-fa"></div>
+      </div>
+    </div>
+    <div class="panel pad" style="display:grid;gap:12px">
+      <div class="row spread"><h2>All metrics</h2><span class="small muted">trained on train, threshold tuned on validation, reported on test</span></div>
+      <div class="table-wrap"><table id="cmp-table"></table></div>
+    </div>
+    <div class="cmp-grid">
+      <div class="panel pad" style="display:grid;gap:12px">
+        <h2>What the crash model still misses</h2>
+        <p class="small muted">Detection rate at P ≥ 0.80 by how hard the impact actually was.</p>
+        <div class="table-wrap"><table id="severity"></table></div>
+        <p class="small muted">Gentle impacts stay hard: below 1.5 g a real crash looks much like a pothole. The countdown band (0.50–0.80) catches part of this by asking the driver instead of staying silent.</p>
+      </div>
+      <div class="panel pad" style="display:grid;gap:12px">
+        <h2>Model B: naming the jolt</h2>
+        <p class="small muted">Rows are ground truth, columns the prediction (out-of-fold, real events).</p>
+        <div class="table-wrap"><table class="cm" id="cm"></table></div>
+      </div>
+    </div>
+    <div class="panel pad notes">
+      <h2>How to read these results</h2>
+      <ul class="small" style="padding-left:18px;margin:0;max-width:80ch">
+        <li><b>The crashes are real.</b> VZCrash contains 16 s of 100 Hz IMU data per event, labelled by three trained reviewers with dashcam footage. Nothing about the crash class is simulated or assembled.</li>
+        <li><b>The negatives are hard on purpose.</b> VZCrash's non-crash events were selected as interesting — near misses, potholes, harsh braking, off-road manoeuvres. A 2.4% false-alarm rate here is not 2.4% of driving time; on ordinary recorded driving (the PVS drives) this system raises no crash alert at all over 200 s and 119 jolts.</li>
+        <li><b>The trigger is part of the detector.</b> Events that never reach 0.45 g are never classified, and count as misses in every number here.</li>
+        <li><b>Model B is the weaker half.</b> Speed bumps and rough road are labelled per drive in PVS, not per event, and only 95 bump crossings exist. It tells a bump from a crash reliably, and a bump from rough road about half the time.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>Data: VZCrash (Bianconcini et al., IEEE ITSC 2026, CC BY-NC 4.0) · PVS Passive Vehicular Sensors, UFSC (CC BY-NC-ND 4.0) · Driver Behavior Dataset, Ferreira et al. 2017 · NHTSA Vehicle Crash Test Database (US DOT).</footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script src="crash_ai.js"></script>
+<script src="data/model.js"></script>
+<script src="data/demo_data.js"></script>
+<script>
+(() => {
+  const D = window.DEMO_DATA, ROAD = D.road_classes, VZ = D.vzcrash;
+  const NICE = { NORMAL: "Normal jolt", SPEED_BUMP: "Speed breaker", POTHOLE_ROUGH_ROAD: "Pothole / rough road",
+    HARSH_MANEUVER: "Harsh manoeuvre", CRASH: "Crash", NEAR_MISS: "Near miss", NORMAL_DRIVING: "Normal driving" };
+  const $ = (id) => document.getElementById(id);
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const pct = (x, d = 1) => (x * 100).toFixed(d) + "%";
+  const byName = Object.fromEntries(D.comparison.map((r) => [r.model, r]));
+  const best = byName[VZ.selected], v1 = D.comparison.find((r) => r.model.startsWith("V1"));
+  const ALERT_P = VZ.firmware_alert_p;
+
+  $("stats").innerHTML = [
+    [best.event_pr_auc.toFixed(3), `old 2.2 g rule ${v1.event_pr_auc.toFixed(3)} · paper's CNN-RNN ${VZ.paper_baselines.cnn_rnn.toFixed(3)}`, "crash detection, average precision"],
+    [pct(best.event_recall_at_p80), `${VZ.totals.test.crash.toLocaleString()} real crashes · old rule ${pct(v1.event_recall_at_p80)}`, "crashes detected at P ≥ 0.80"],
+    [pct(best.event_fpr_at_p80, 2), `old rule ${pct(v1.event_fpr_at_p80, 2)} on the same events`, "false alarms on hard non-crash events"],
+    ["659 KB", "50% of ESP32 flash · both models · 45 KB RAM", "compiled transmitter firmware"],
+  ].map(([v, f, l]) => `<div class="stat"><span class="value">${v}</span><span class="label">${l}</span><span class="from">${f}</span></div>`).join("");
+
+  const tabs = [["tab-live", "view-live"], ["tab-lib", "view-lib"], ["tab-cmp", "view-cmp"]];
+  const showTab = (id) => {
+    tabs.forEach(([t, v]) => { $(t).setAttribute("aria-selected", t === id); $(v).hidden = t !== id; });
+    try { localStorage.setItem("cvc-tab", id); } catch (e) {}
+    if (id === "tab-lib") drawEvent();
+    if (id === "tab-live") draw();
+  };
+  tabs.forEach(([t]) => $(t).addEventListener("click", () => showTab(t)));
+
+  function sizeCanvas(c) {
+    const r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    if (c.width !== Math.round(r.width * dpr) || c.height !== Math.round(r.height * dpr)) {
+      c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+    }
+    const ctx = c.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return [ctx, r.width, r.height];
+  }
+  const niceMax = (x) => [1, 2, 4, 8, 16].find((s) => x <= s) || 16;
+
+  function plotSignals(canvas, flat, start, count, opts = {}) {
+    const [ctx, W, H] = sizeCanvas(canvas);
+    ctx.clearRect(0, 0, W, H);
+    const L = 46, R = 10, T = 10, B = 22, pw = W - L - R, ph = H - T - B;
+    const n = Math.max(0, Math.min(count, flat.length / 3 - start));
+    const gFrom = opts.gravityStart ?? start, base = Math.max(1, Math.min(50, n));
+    const g = [0, 0, 0];
+    for (let i = 0; i < base; i++) for (let k = 0; k < 3; k++) g[k] += flat[(gFrom + i) * 3 + k] / base;
+    const gm = Math.hypot(g[0], g[1], g[2]) || 1, u = g.map((x) => x / gm);
+    const hs = new Float32Array(n), vs = new Float32Array(n);
+    let peak = 0;
+    for (let i = 0; i < n; i++) {
+      const j = (start + i) * 3, d = [flat[j] - g[0], flat[j + 1] - g[1], flat[j + 2] - g[2]];
+      const v = d[0] * u[0] + d[1] * u[1] + d[2] * u[2];
+      hs[i] = Math.hypot(d[0] - v * u[0], d[1] - v * u[1], d[2] - v * u[2]);
+      vs[i] = v;
+      peak = Math.max(peak, hs[i], Math.abs(v));
+    }
+    const ymax = opts.ymax || niceMax(Math.max(1, peak * 1.1));
+    const y = (val) => T + ph / 2 - (val / ymax) * (ph / 2);
+    const x = (i) => L + (i / Math.max(1, (opts.span || n) - 1)) * pw;
+    ctx.font = "11px " + css("--mono"); ctx.fillStyle = css("--ink-3"); ctx.strokeStyle = css("--grid"); ctx.lineWidth = 1;
+    for (const t of [-ymax, -ymax / 2, 0, ymax / 2, ymax]) {
+      ctx.beginPath(); ctx.moveTo(L, Math.round(y(t)) + .5); ctx.lineTo(L + pw, Math.round(y(t)) + .5); ctx.stroke();
+      ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillText((t > 0 ? "+" : "") + t + " g", L - 6, y(t));
+    }
+    if (opts.shade) { ctx.fillStyle = css("--sunken"); ctx.fillRect(x(opts.shade[0]), T, x(opts.shade[1]) - x(opts.shade[0]), ph); }
+    ctx.strokeStyle = css("--ink-3"); ctx.globalAlpha = .6;
+    ctx.beginPath(); ctx.moveTo(L, y(0.45)); ctx.lineTo(L + pw, y(0.45)); ctx.stroke(); ctx.globalAlpha = 1;
+    for (const [arr, color] of [[vs, css("--v")], [hs, css("--h")]]) {
+      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.beginPath();
+      for (let i = 0; i < n; i++) { const yy = y(Math.max(-ymax, Math.min(ymax, arr[i]))); i ? ctx.lineTo(x(i), yy) : ctx.moveTo(x(i), yy); }
+      ctx.stroke();
+    }
+    ctx.fillStyle = css("--ink-3"); ctx.textBaseline = "alphabetic";
+    (opts.xlabels || []).forEach(([i, label]) => { ctx.textAlign = "center"; ctx.fillText(label, Math.min(Math.max(x(i), L + 16), L + pw - 16), H - 6); });
+    return peak;
+  }
+
+  function plotGyro(canvas, flat, opts = {}) {
+    const [ctx, W, H] = sizeCanvas(canvas);
+    ctx.clearRect(0, 0, W, H);
+    const L = 46, R = 10, T = 10, B = 20, pw = W - L - R, ph = H - T - B;
+    const n = flat.length / 3, mag = new Float32Array(n);
+    let peak = 1;
+    for (let i = 0; i < n; i++) { mag[i] = Math.hypot(flat[i * 3], flat[i * 3 + 1], flat[i * 3 + 2]); peak = Math.max(peak, mag[i]); }
+    const ymax = Math.max(10, Math.ceil(peak * 1.15 / 10) * 10);
+    const y = (val) => T + ph - (val / ymax) * ph, x = (i) => L + (i / (n - 1)) * pw;
+    ctx.font = "11px " + css("--mono"); ctx.strokeStyle = css("--grid");
+    for (const t of [0, ymax / 2, ymax]) {
+      ctx.beginPath(); ctx.moveTo(L, Math.round(y(t)) + .5); ctx.lineTo(L + pw, Math.round(y(t)) + .5); ctx.stroke();
+      ctx.fillStyle = css("--ink-3"); ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillText(Math.round(t) + "°/s", L - 6, y(t));
+    }
+    if (opts.shade) { ctx.fillStyle = css("--sunken"); ctx.globalAlpha = .7; ctx.fillRect(x(opts.shade[0]), T, x(opts.shade[1]) - x(opts.shade[0]), ph); ctx.globalAlpha = 1; }
+    ctx.strokeStyle = css("--w"); ctx.lineWidth = 1.5; ctx.beginPath();
+    for (let i = 0; i < n; i++) { const yy = y(mag[i]); i ? ctx.lineTo(x(i), yy) : ctx.moveTo(x(i), yy); }
+    ctx.stroke();
+  }
+
+  function roadBars(el, p) {
+    el.innerHTML = ROAD.map((c, i) => `<div class="bar"><span class="name">${NICE[c]}</span><span class="track"><span class="fill" style="width:${((p ? p[i] : 0) * 100).toFixed(1)}%"></span></span><span class="pct">${p ? pct(p[i], 0) : "–"}</span></div>`).join("");
+  }
+
+  // ---------------- live detector
+  const R = D.replay, TOTAL = R.samples.length / 3, FS = R.fs;
+  let source = "replay", playing = false, speed = 5, cursor = 0, detector, lastFrame = 0;
+  let serialFlat = [], serialDet, events = [], v1Alarms = [], v1Last = -1e9, counts, replayFloat = null, replayGyro = null;
+  const truthAt = (t) => R.truth.find((s) => t >= s.t - 1.5 && t <= s.end + 1.5);
+
+  const newDetector = () => new CrashAI.Detector(window.CRASH_MODEL, { roadModel: window.ROAD_MODEL });
+
+  function resetReplay() {
+    detector = newDetector();
+    cursor = 0; events = []; v1Alarms = []; v1Last = -1e9;
+    counts = Object.fromEntries([...ROAD, "CRASH"].map((c) => [c, 0]));
+    $("log").innerHTML = ""; renderCounts(); setVerdict(null);
+    $("v1-chip").textContent = "0 alarms"; $("v1-chip").className = "chip idle";
+    $("v1-sub").textContent = "Every alarm would send an emergency SMS.";
+  }
+
+  function renderCounts() {
+    $("counts").innerHTML = [...ROAD, "CRASH"].map((c) => `<div><b>${counts[c]}</b><span>${NICE[c]}</span></div>`).join("");
+    $("log-note").textContent = `${events.length} events classified`;
+  }
+
+  function setVerdict(ev) {
+    const card = $("ai-card"), chip = $("ai-chip");
+    if (!ev) {
+      $("ai-label").textContent = "Waiting for a jolt";
+      $("ai-sub").textContent = "Wakes on any jolt above 0.45 g.";
+      chip.className = "chip idle"; chip.textContent = "monitoring";
+      card.classList.remove("alert");
+      $("p-fill").style.width = "0%"; $("p-value").textContent = "P(crash) 0.000";
+      roadBars($("road-bars"), null);
+      return;
+    }
+    const alert = ev.pCrash >= ALERT_P, verify = !alert && ev.pCrash >= 0.5;
+    $("ai-label").textContent = alert ? "Crash" : verify ? "Possible crash" : "No crash";
+    $("ai-sub").textContent = alert ? "LoRa ALERT sent · receiver dispatches the SMS"
+      : verify ? "10 s buzzer countdown — the driver can cancel" : `t = ${ev.t.toFixed(1)} s · logged, no SMS`;
+    chip.className = "chip " + (alert ? "crash" : verify ? "warn" : "safe");
+    chip.textContent = alert ? "crash alert" : verify ? "verifying" : "no alert";
+    card.classList.toggle("alert", alert);
+    $("p-fill").style.width = (ev.pCrash * 100).toFixed(1) + "%";
+    $("p-value").textContent = "P(crash) " + ev.pCrash.toFixed(3);
+    roadBars($("road-bars"), ev.roadProbs);
+  }
+
+  function addEvent(e, t) {
+    const peak = e.features[0], v1 = e.features[4] > 2.2;
+    const truth = source === "replay" ? truthAt(t) : null;
+    const road = source === "replay" ? R.road[Math.min(Math.floor(t), R.road.length - 1)] : null;
+    const label = e.pCrash >= 0.5 ? "CRASH" : e.label;
+    const rec = { t, label, pCrash: e.pCrash, roadProbs: e.roadProbs, peak, v1 };
+    events.push(rec); counts[label] = (counts[label] || 0) + 1;
+    const cls = e.pCrash >= ALERT_P ? "crash" : e.pCrash >= 0.5 ? "warn" : "safe";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono">${t.toFixed(1)} s</td><td><span class="chip ${cls}">${esc(NICE[label] || label)}</span></td>`
+      + `<td class="num">${e.pCrash.toFixed(3)}</td><td class="num">${peak.toFixed(2)}</td>`
+      + `<td>${v1 ? '<span class="chip warn">alarm</span>' : '<span class="muted small">quiet</span>'}</td>`
+      + `<td class="small muted">${esc(truth ? truth.label : road ? road + " road" : "–")}</td>`;
+    $("log").prepend(tr);
+    while ($("log").children.length > 300) $("log").lastChild.remove();
+    renderCounts(); setVerdict(rec);
+  }
+
+  function step(n) {
+    if (!replayFloat) {
+      replayFloat = Float32Array.from(R.samples, (x) => x / 2048);
+      replayGyro = Float32Array.from(R.gyro, (x) => x / 16.4);
+    }
+    for (let k = 0; k < n && cursor < TOTAL; k++, cursor++) {
+      const i = cursor * 3;
+      const ax = replayFloat[i], ay = replayFloat[i + 1], az = replayFloat[i + 2];
+      if (Math.hypot(ax, ay, az) > 2.2 && cursor - v1Last > 300) {
+        v1Last = cursor; v1Alarms.push(cursor / FS);
+        $("v1-chip").textContent = `${v1Alarms.length} alarm${v1Alarms.length > 1 ? "s" : ""}`;
+        $("v1-chip").className = "chip warn";
+        const real = v1Alarms.filter((a) => Math.abs(a - R.crash_time) < 2).length;
+        $("v1-sub").textContent = `${v1Alarms.length - real} false SMS so far${real ? ", plus the real crash" : ""}.`;
+      }
+      const { event } = detector.push(ax, ay, az, replayGyro[i], replayGyro[i + 1], replayGyro[i + 2]);
+      if (event) addEvent(event, event.trigger / FS);
+    }
+    if (cursor >= TOTAL) { playing = false; $("play").textContent = "Play"; }
+  }
+
+  function draw() {
+    if ($("view-live").hidden) return;
+    if (source === "replay") {
+      if (!replayFloat) return;
+      const span = 10 * FS, start = Math.max(0, cursor - span), xl = [];
+      for (let s = Math.ceil(start / FS); s <= cursor / FS; s += 2) xl.push([s * FS - start, s + " s"]);
+      plotSignals($("trace"), replayFloat, start, cursor - start, { span, ymax: 2, xlabels: xl });
+      const sp = R.speed_kmh[Math.min(Math.floor(cursor / FS), R.speed_kmh.length - 1)];
+      $("clock").textContent = `t = ${(cursor / FS).toFixed(1)} s of ${(TOTAL / FS).toFixed(0)} s` + (sp != null ? ` · ${sp.toFixed(0)} km/h` : "");
+      drawTimeline();
+    } else {
+      const span = 10 * FS, n = serialFlat.length / 3, start = Math.max(0, n - span);
+      plotSignals($("trace"), Float32Array.from(serialFlat), start, n - start, { span, ymax: 2 });
+      $("clock").textContent = `${n} samples received`;
+      const [ctx, W, H] = sizeCanvas($("timeline")); ctx.clearRect(0, 0, W, H);
+    }
+  }
+
+  function drawTimeline() {
+    const [ctx, W, H] = sizeCanvas($("timeline"));
+    ctx.clearRect(0, 0, W, H);
+    const x = (t) => 4 + (t / (TOTAL / FS)) * (W - 8);
+    ctx.fillStyle = css("--sunken"); ctx.fillRect(4, 18, W - 8, 12);
+    ctx.fillStyle = css("--grid"); ctx.fillRect(4, 18, x(cursor / FS) - 4, 12);
+    ctx.fillStyle = css("--ink-3");
+    R.truth.forEach((s) => ctx.fillRect(x(s.t) - 1, 30, Math.max(3, x(s.end) - x(s.t)), 6));
+    ctx.fillStyle = css("--safe");
+    events.forEach((e) => { if (e.pCrash < 0.5) ctx.fillRect(x(e.t), 20, 1.5, 8); });
+    ctx.fillStyle = css("--crash");
+    events.forEach((e) => { if (e.pCrash >= 0.5) ctx.fillRect(x(e.t) - 2, 14, 4, 20); });
+    ctx.fillStyle = css("--warn");
+    v1Alarms.forEach((t) => ctx.fillRect(x(t) - 1, 10, 3, 7));
+    ctx.fillStyle = css("--ink"); ctx.fillRect(x(cursor / FS) - 1, 14, 2, 20);
+  }
+
+  function loop(ts) {
+    if (playing && source === "replay") step(Math.round(Math.min(0.1, (ts - (lastFrame || ts)) / 1000) * FS * speed));
+    lastFrame = ts;
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  $("play").addEventListener("click", () => {
+    if (cursor >= TOTAL) resetReplay();
+    playing = !playing; $("play").textContent = playing ? "Pause" : "Play";
+  });
+  $("restart").addEventListener("click", () => { resetReplay(); playing = true; $("play").textContent = "Pause"; });
+  document.querySelectorAll("[data-speed]").forEach((b) => b.addEventListener("click", () => {
+    speed = +b.dataset.speed;
+    document.querySelectorAll("[data-speed]").forEach((o) => o.setAttribute("aria-pressed", o === b));
+  }));
+  $("timeline").addEventListener("click", (e) => {
+    if (source !== "replay") return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const target = Math.round(((e.clientX - r.left - 4) / (r.width - 8)) * TOTAL);
+    if (target < cursor) resetReplay();
+    step(Math.max(0, target - cursor));
+  });
+
+  function setSource(s) {
+    source = s; playing = false; $("play").textContent = "Play";
+    $("src-replay").setAttribute("aria-pressed", s === "replay"); $("src-serial").setAttribute("aria-pressed", s === "serial");
+    $("replay-controls").hidden = s !== "replay"; $("serial-controls").hidden = s !== "serial";
+    $("timeline").hidden = $("timeline-legend").hidden = s !== "replay";
+    $("replay-source").textContent = s === "replay" ? R.source : "";
+    $("source-note").textContent = s === "replay" ? "Unseen vehicle, unseen crash"
+      : "Flash transmitter_LORA/ml_crash_detector, then connect (Chrome or Edge)";
+    events = []; counts = Object.fromEntries([...ROAD, "CRASH"].map((c) => [c, 0]));
+    $("log").innerHTML = ""; renderCounts(); setVerdict(null);
+    if (s === "replay") resetReplay();
+    else { serialFlat = []; serialDet = newDetector(); v1Alarms = []; v1Last = -1e9; $("v1-chip").textContent = "0 alarms"; $("v1-chip").className = "chip idle"; }
+  }
+  $("src-replay").addEventListener("click", () => setSource("replay"));
+  $("src-serial").addEventListener("click", () => setSource("serial"));
+
+  $("connect").addEventListener("click", async () => {
+    const status = $("serial-status");
+    if (!("serial" in navigator)) { status.className = "chip warn"; status.textContent = "Web Serial needs desktop Chrome or Edge"; return; }
+    try {
+      const port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      status.className = "chip safe"; status.textContent = "streaming at 115200 baud";
+      const reader = port.readable.pipeThrough(new TextDecoderStream()).getReader();
+      let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += value;
+        let nl;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+          if (line.startsWith("R,")) {
+            const [, ax, ay, az] = line.split(",").map(Number);
+            if ([ax, ay, az].some(isNaN)) continue;
+            serialFlat.push(ax, ay, az);
+            if (serialFlat.length > 3 * 6000) serialFlat.splice(0, serialFlat.length - 3 * 3000);
+            if (Math.hypot(ax, ay, az) > 2.2 && serialDet.i - v1Last > 300) {
+              v1Last = serialDet.i; v1Alarms.push(serialDet.i / 100);
+              $("v1-chip").textContent = `${v1Alarms.length} alarms`; $("v1-chip").className = "chip warn";
+            }
+            const { event } = serialDet.push(ax, ay, az);
+            if (event) addEvent(event, event.trigger / 100);
+          } else if (line.startsWith("E,")) {
+            const p = line.split(",");
+            $("ai-sub").textContent = `ESP32 said: ${NICE[p[1]] || p[1]}, P(crash) ${(+p[2]).toFixed(3)}, ${p[p.length - 1]} µs`;
+          } else if (line.startsWith("#")) {
+            status.textContent = line.slice(1).trim().slice(0, 60);
+          }
+        }
+      }
+    } catch (err) {
+      status.className = "chip warn";
+      status.textContent = err.name === "NotFoundError" ? "no port selected" : "serial error: " + err.message;
+    }
+  });
+
+  // ---------------- event library
+  let current = 0;
+  const evList = $("ev-list");
+  D.events.forEach((ev, i) => {
+    const b = document.createElement("button");
+    b.className = "ev"; b.type = "button";
+    const isCrash = ev.truth === "CRASH", said = ev.p_crash >= ALERT_P;
+    const verdict = said ? "CRASH" : ROAD[ev.road_probs.indexOf(Math.max(...ev.road_probs))];
+    const ok = said === isCrash;
+    b.innerHTML = `<span class="row spread"><b>${esc(NICE[ev.truth] || ev.truth)}</b>`
+      + `<span class="chip ${said ? "crash" : "safe"}">${ok ? "AI: " : "AI wrong: "}${esc(NICE[verdict] || verdict)}</span></span>`
+      + `<span class="desc">${esc(ev.why)} · ${esc(ev.desc)}</span>`;
+    b.addEventListener("click", () => { current = i; drawEvent(); });
+    evList.append(b);
+  });
+
+  function drawEvent() {
+    const ev = D.events[current];
+    [...evList.children].forEach((c, i) => c.setAttribute("aria-current", i === current));
+    const said = ev.p_crash >= ALERT_P;
+    const road = ROAD[ev.road_probs.indexOf(Math.max(...ev.road_probs))];
+    $("ev-detail").innerHTML = `
+      <div style="display:grid;gap:4px"><span class="eyebrow">${esc(ev.source)} · ${esc(ev.why)}</span><h2>${esc(ev.desc)}</h2></div>
+      <div class="legend"><span><i style="background:var(--h)"></i>horizontal</span><span><i style="background:var(--v)"></i>vertical</span><span><i style="background:var(--ink-3)"></i>0.45 g trigger</span><span>shaded: 1 s before the trigger</span></div>
+      <canvas id="evtrace" aria-label="Event acceleration window"></canvas>
+      ${ev.gyro ? '<div class="legend"><span><i style="background:var(--w)"></i>rotation rate</span></div><canvas id="evgyro" aria-label="Event rotation rate"></canvas>' : ""}
+      <div class="kv">
+        <div><span>ground truth</span><b>${esc(NICE[ev.truth] || ev.truth)}</b></div>
+        <div><span>model A · P(crash)</span><b style="color:${said ? "var(--crash)" : "var(--safe)"}">${ev.p_crash.toFixed(3)}</b></div>
+        <div><span>model B · jolt type</span><b>${esc(NICE[road])}</b></div>
+        <div><span>old 2.2 g rule</span><b style="color:${ev.v1_alarm ? "var(--warn)" : "var(--ink)"}">${ev.v1_alarm ? "ALARM" : "quiet"}</b></div>
+        <div><span>peak dynamic accel.</span><b>${ev.peak_g.toFixed(2)} g</b></div>
+        <div><span>horizontal ΔV</span><b>${ev.dv_kmh.toFixed(1)} km/h</b></div>
+        ${ev.w_peak != null ? `<div><span>peak rotation</span><b>${ev.w_peak.toFixed(0)} °/s</b></div>` : ""}
+      </div>
+      <div style="display:grid;gap:6px"><h3>Model B probabilities</h3><div class="bars" id="ev-bars"></div></div>`;
+    roadBars($("ev-bars"), ev.road_probs);
+    const flat = Float32Array.from(ev.samples, (x) => x / 2048);
+    const opts = { span: 250, shade: [0, 100], xlabels: [[0, "−1.0 s"], [100, "trigger"], [249, "+1.5 s"]] };
+    const peak = plotSignals($("evtrace"), flat, 0, 250, opts);
+    if (peak > 2) plotSignals($("evtrace"), flat, 0, 250, Object.assign({}, opts, { ymax: niceMax(peak * 1.05) }));
+    if (ev.gyro) plotGyro($("evgyro"), Float32Array.from(ev.gyro, (x) => x / 16.4), { shade: [0, 100] });
+  }
+
+  // ---------------- comparison
+  const tip = $("tip");
+  function hbars(el, rows, value, fmt, scaleMax) {
+    const max = scaleMax || Math.max(...rows.map((r) => value(r)));
+    el.innerHTML = rows.map((r) => {
+      const sel = r.model === VZ.selected, show = sel || r.model.startsWith("V1") || r.ref;
+      return `<div class="hbar ${sel ? "sel" : ""} ${r.ref ? "ref" : ""}" data-tip="${esc(r.model)}: ${fmt(value(r))}">`
+        + `<span class="name">${esc(r.model.replace(" (current firmware)", ""))}</span>`
+        + `<span class="track"><span class="fill" style="width:${(value(r) / max) * 100}%"></span></span>`
+        + `<span class="val">${show ? fmt(value(r)) : ""}</span></div>`;
+    }).join("");
+    el.querySelectorAll(".hbar").forEach((row) => {
+      row.addEventListener("mousemove", (e) => {
+        tip.hidden = false; tip.textContent = row.dataset.tip;
+        tip.style.left = Math.min(e.clientX + 12, innerWidth - 290) + "px"; tip.style.top = e.clientY + 14 + "px";
+      });
+      row.addEventListener("mouseleave", () => { tip.hidden = true; });
+    });
+  }
+  const apRows = D.comparison.concat([
+    { model: "VZCrash paper: physical baseline", event_pr_auc: VZ.paper_baselines.physical_baseline, ref: true },
+    { model: "VZCrash paper: CNN-RNN (1.7M params)", event_pr_auc: VZ.paper_baselines.cnn_rnn, ref: true },
+  ]);
+  hbars($("chart-ap"), apRows, (r) => r.event_pr_auc, (x) => x.toFixed(3), 1);
+  hbars($("chart-fa"), D.comparison, (r) => r.event_fpr_at_p80 * 1000, (x) => x.toFixed(1));
+
+  const cols = [
+    ["model", (r) => esc(r.model), false],
+    ["inputs", (r) => esc(r.features), true],
+    ["event AP", (r) => r.event_pr_auc.toFixed(4), true],
+    ["recall @0.8", (r) => pct(r.event_recall_at_p80), true],
+    ["false alarms @0.8", (r) => pct(r.event_fpr_at_p80, 2), true],
+    ["recall @tuned", (r) => pct(r.event_recall_tuned), true],
+    ["false alarms @tuned", (r) => pct(r.event_fpr_tuned, 2), true],
+    ["window AP", (r) => r.window_pr_auc.toFixed(4), true],
+    ["crashes found", (r) => r.detected_crashes.toLocaleString(), true],
+    ["on ESP32", (r) => (r.deployable_on_esp32 ? "yes" : "no"), true],
+  ];
+  $("cmp-table").innerHTML = `<thead><tr>${cols.map(([h], i) => `<th class="${i ? "num" : ""}">${h}</th>`).join("")}</tr></thead>`
+    + `<tbody>${D.comparison.map((r) => `<tr class="${r.model === VZ.selected ? "best" : ""}">`
+      + cols.map(([, f, num]) => `<td class="${num ? "num mono" : ""}">${f(r)}</td>`).join("") + "</tr>").join("")}</tbody>`;
+
+  $("severity").innerHTML = `<thead><tr><th>impact strength</th><th class="num">crashes</th><th class="num">detected</th></tr></thead><tbody>`
+    + Object.entries(VZ.crash_recall_by_peak_g).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num mono">${v.n.toLocaleString()}</td>`
+      + `<td class="num mono" style="color:${v.recall > .9 ? "var(--safe)" : v.recall > .5 ? "var(--warn)" : "var(--crash)"}">${pct(v.recall)}</td></tr>`).join("")
+    + "</tbody>";
+
+  const cm = D.road.confusion, rowsum = cm.map((r) => r.reduce((a, b) => a + b, 0));
+  $("cm").innerHTML = `<thead><tr><th></th>${ROAD.map((c) => `<th>${esc(NICE[c])}</th>`).join("")}</tr></thead><tbody>`
+    + cm.map((r, i) => `<tr><th scope="row">${esc(NICE[ROAD[i]])}</th>` + r.map((v, j) => {
+      const s = v / Math.max(rowsum[i], 1);
+      return `<td style="background:color-mix(in srgb, var(--h) ${Math.round(s * 85)}%, transparent);color:${s > .55 ? "#fff" : "var(--ink)"}" title="${v} of ${rowsum[i]}">${v}</td>`;
+    }).join("") + "</tr>").join("") + "</tbody>";
+
+  resetReplay();
+  setSource("replay");
+  let saved = null; try { saved = localStorage.getItem("cvc-tab"); } catch (e) {}
+  showTab(tabs.some(([t]) => t === saved) ? saved : "tab-live");
+  step(Math.round(46.5 * FS));
+  requestAnimationFrame(loop);
+  addEventListener("resize", () => { draw(); if (!$("view-lib").hidden) drawEvent(); });
+})();
+</script>

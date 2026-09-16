@@ -1,0 +1,9 @@
+  worst feature error  post_std           1.49e-04
+  worst feature error  post_gmag_dev      1.18e-04
+  worst feature error  dv_v_kmh           2.71e-05
+windows compared:             1987 (250 samples each; 513 VZCrash, 1474 road)
+feature max relative error:   1.49e-04
+crash model max |dP|:         6.67e-07 (99th pct 3.9e-07)
+same alert decision (p>=.8):  100.0000%
+road model same class:        100.0000%
+C inference on this host:     24.4 us per event (features + both models)

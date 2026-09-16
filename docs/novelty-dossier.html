@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<title>Crash Discrimination Novelty Dossier</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #f6f7f8;
+    --card: #ffffff;
+    --sunken: #edf0f2;
+    --ink: #14181b;
+    --ink-2: #454f56;
+    --ink-3: #6e7980;
+    --rule: #dbe0e3;
+    --grid: #e9edef;
+    --accent: #14457f;
+    --s1: #2a78d6;
+    --s2: #eb6834;
+    --s3: #1baf7a;
+    --s4: #4a3aa7;
+    --crash: #c8372d;
+    --good: #2a7f50;
+    --warn: #9a6400;
+    --serif: "Source Serif 4", Georgia, serif;
+    --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #101417; --card: #171d21; --sunken: #121820; --ink: #e8edf0; --ink-2: #abb6bd; --ink-3: #7d8891;
+      --rule: #29333a; --grid: #1e272d; --accent: #82b2f2; --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+      --s4: #9085e9; --crash: #f07064; --good: #5cc08a; --warn: #e3a93b;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #101417; --card: #171d21; --sunken: #121820; --ink: #e8edf0; --ink-2: #abb6bd; --ink-3: #7d8891;
+    --rule: #29333a; --grid: #1e272d; --accent: #82b2f2; --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --s4: #9085e9; --crash: #f07064; --good: #5cc08a; --warn: #e3a93b;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.62 var(--serif); padding-inline: 16px; padding-block: 0 64px; }
+  .page { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 216px minmax(0, 1fr); gap: 40px; align-items: start; }
+  @media (max-width: 940px) { .page { grid-template-columns: minmax(0, 1fr); gap: 20px; } nav.toc { position: static !important; max-height: none !important; } }
+
+  h1, h2, h3, h4 { font-family: var(--display); font-stretch: 84%; margin: 0; text-wrap: balance; letter-spacing: -.012em; }
+  h1 { font-size: clamp(30px, 4.4vw, 42px); font-weight: 800; line-height: 1.04; }
+  h2 { font-size: 25px; font-weight: 700; margin-top: 8px; }
+  h3 { font-size: 18px; font-weight: 700; }
+  h4 { font-size: 15px; font-weight: 700; letter-spacing: .01em; }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .eyebrow { font: 600 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 15px; }
+  .tiny { font-size: 13px; line-height: 1.5; }
+
+  header.masthead { display: grid; gap: 14px; padding-block: 40px 8px; border-bottom: 2px solid var(--ink); }
+  header.masthead .sub { font-size: 18px; color: var(--ink-2); max-width: 62ch; }
+  .byline { font: 400 14px/1.6 var(--mono); color: var(--ink-3); }
+
+  nav.toc { position: sticky; top: 24px; font: 400 14px/1.5 var(--display); font-stretch: 90%; display: grid; gap: 2px; max-height: calc(100vh - 48px); overflow: auto; padding-block: 40px; }
+  nav.toc a { display: block; padding: 4px 8px; color: var(--ink-2); text-decoration: none; border-left: 2px solid transparent; }
+  nav.toc a:hover { color: var(--ink); background: var(--sunken); }
+  nav.toc a.on { color: var(--ink); border-left-color: var(--accent); font-weight: 600; }
+  nav.toc .grp { margin-top: 10px; font: 600 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding: 0 8px; }
+
+  main { display: grid; gap: 34px; min-width: 0; }
+  section { display: grid; gap: 14px; scroll-margin-top: 20px; }
+  section > p, section > ul, section > ol { max-width: 74ch; }
+  ul, ol { margin: 0; padding-left: 22px; }
+  li { margin-bottom: 7px; }
+  .secnum { color: var(--ink-3); font-family: var(--mono); font-size: 0.72em; margin-right: 8px; font-weight: 500; }
+
+  .lead { font-size: 19px; line-height: 1.6; }
+  .kicker { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; color: var(--ink-2); max-width: 70ch; }
+
+  .claim { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; display: grid; gap: 10px; }
+  .claim .tag { font: 700 12px/1 var(--mono); letter-spacing: .06em; color: var(--accent); }
+  .claim h3 { font-size: 19px; }
+  .claim .why { color: var(--ink-2); }
+  .claim .evidence { background: var(--sunken); border-radius: 8px; padding: 10px 14px; font-size: 15px; }
+  .claim .evidence b { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .stat { background: var(--card); padding: 14px 16px; display: grid; gap: 3px; }
+  .stat b { font: 700 27px/1.05 var(--display); font-stretch: 86%; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 14px; color: var(--ink-2); }
+  .stat i { font: 400 12px/1.4 var(--mono); color: var(--ink-3); font-style: normal; }
+
+  figure { margin: 0; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; display: grid; gap: 10px; break-inside: avoid; }
+  figcaption { font-size: 14px; color: var(--ink-2); }
+  figcaption b { font-family: var(--display); font-stretch: 88%; color: var(--ink); }
+  .chart { width: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--ink-2); }
+  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font: 400 14px/1.45 var(--display); font-stretch: 92%; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th { font: 600 11px/1.3 var(--mono); letter-spacing: .04em; color: var(--ink-3); text-transform: uppercase; }
+  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tr.hi td { background: var(--sunken); font-weight: 600; }
+  .cm td.cell { text-align: center; font-family: var(--mono); }
+
+  pre { background: var(--sunken); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font: 400 13px/1.55 var(--mono); margin: 0; }
+  code { font: 400 .88em var(--mono); background: var(--sunken); padding: 1px 5px; border-radius: 4px; }
+  pre code { background: none; padding: 0; }
+
+  .note { border: 1px solid var(--rule); border-left: 3px solid var(--warn); border-radius: 8px; padding: 12px 16px; background: var(--card); font-size: 15px; max-width: 74ch; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  footer { border-top: 1px solid var(--rule); padding-top: 16px; color: var(--ink-3); font-size: 14px; }
+
+  @media print {
+    body { background: #fff; padding: 0; font-size: 11pt; }
+    nav.toc, .theme-toggle { display: none; }
+    .page { display: block; max-width: none; }
+    section { break-inside: avoid-page; }
+  }
+</style>
+
+<div class="page">
+  <nav class="toc" id="toc" aria-label="Contents"></nav>
+  <main>
+    <header class="masthead">
+      <span class="eyebrow">Novelty and technical justification</span>
+      <h1>Telling a crash from a speed breaker, on the device</h1>
+      <p class="sub">An on-device machine-learning layer for a LoRa accident-alert system, trained on 31,090 verified
+        real crashes and measured against the rule it replaces, the design specified in Assessment-6, and the
+        published deep models for the same dataset.</p>
+      <p class="byline">ESP32 · MPU6050 · SX1278 &nbsp;|&nbsp; Arush Mishra</p>
+    </header>
+
+    <section id="summary">
+      <h2><span class="secnum">1</span>What is new, in one page</h2>
+      <p class="lead">A threshold detector answers one question — was the jolt big? This system answers the question
+        that actually matters on an Indian road: <b>was it a crash, or a speed breaker, a pothole, or hard braking?</b>
+        Two gradient-boosted tree models run inside the ESP32. Model&nbsp;A decides crash or not, from 30 accelerometer
+        and 7 gyroscope features over a 2.5&nbsp;s window. Model&nbsp;B names everything else. Only a crash raises an
+        SMS.</p>
+      <div class="stats" id="headline"></div>
+      <p>Every number in this dossier is measured on the <b>held-out test split of VZCrash</b> — 24,174 events,
+        4,221 of them real crashes reviewed by three trained annotators against dashcam footage, none of which the
+        model saw during training.</p>
+      <figure>
+        <svg class="chart" id="fig-bench" role="img" aria-label="Average precision of this system against baselines and published models"></svg>
+        <figcaption><b>Figure 1.</b> Where the system sits. It lands between the VZCrash paper's own physics baseline
+          and its 1.7-million-parameter neural network — while running in 339 KB of flash on a microcontroller.</figcaption>
+      </figure>
+    </section>
+
+    <section id="problem">
+      <h2><span class="secnum">2</span>The problem with the rule it replaces</h2>
+      <p>Low-cost accident detectors, including the first version of this project, declare a crash when acceleration
+        crosses a fixed threshold — here <code>|a| &gt; 2.2 g</code>. Four measured objections:</p>
+      <ol>
+        <li><b>Ordinary bad roads cross the threshold.</b> In the PVS drives, a dashboard accelerometer reaches
+          <b>2.5–3.5 g</b> on rough and cobblestone stretches. The rule fires on <b>6.3 %</b> of rough-road jolts.</li>
+        <li><b>On real crash data it ranks poorly.</b> Average precision <b>0.703</b>, false-alarm rate <b>6.98 %</b>.</li>
+        <li><b>It cannot explain itself.</b> One bit of output: no way to tell a driver, a fleet or a road authority
+          that the jolt was a speed breaker.</li>
+        <li><b>The original parameters were mutually inconsistent</b> — 3.3 Hz sampling cannot resolve a 50–200 ms
+          crash pulse, and a ±2 g range cannot represent a 2.2 g threshold. Both are fixed here (100 Hz, ±16 g), but
+          fixing them does not address objections 1–3.</li>
+      </ol>
+      <p>The nearest prior design inside this project is the Assessment-6 V2 specification: a 200 ms window, an
+        8-element feature vector, logistic regression. Implemented exactly as written and trained on the same data it
+        scores <b>0.902 AP</b> — a real improvement on the threshold, and 0.062 AP below what is proposed here.
+        §7 shows the limiting factor is the 200 ms window, not the classifier.</p>
+    </section>
+
+    <section id="claims">
+      <h2><span class="secnum">3</span>The claimed novelty</h2>
+      <p>Each claim is stated as a mechanism, why it is not the obvious choice, and the measurement that supports it.</p>
+      <div id="claim-list" style="display:grid;gap:14px"></div>
+      <div class="note"><b>What is not claimed.</b> LoRa transmission and the 433 MHz link budget; the MPU6050 and
+        NEO-6M devices; threshold-based impact detection in general; gradient boosting, logistic regression and their
+        libraries; the datasets; the cloud SMS API. The novelty is the combination and the specific mechanisms N1–N8.</div>
+    </section>
+
+    <section id="architecture">
+      <h2><span class="secnum">4</span>How the system is built</h2>
+      <figure>
+        <svg class="chart" id="fig-arch" role="img" aria-label="Two-stage on-device pipeline"></svg>
+        <figcaption><b>Figure 2.</b> The pipeline. A cheap trigger wakes an expensive decision; the expensive decision
+          is split into a safety-critical model and an explanatory one.</figcaption>
+      </figure>
+      <div class="table-wrap"><table id="tbl-params"></table></div>
+    </section>
+
+    <section id="features">
+      <h2><span class="secnum">5</span>The 37 features, and which ones matter</h2>
+      <p>Features are computed in the gravity frame, so the verdict does not depend on how the box is mounted. They are
+        grouped by the physics they capture:</p>
+      <div class="table-wrap"><table id="tbl-features"></table></div>
+      <figure>
+        <svg class="chart" id="fig-importance" role="img" aria-label="Feature importance of the crash model"></svg>
+        <figcaption><b>Figure 3.</b> What the crash model actually uses (gain share, top 14 of 37). The peak
+          <b>yaw rate about gravity</b> is the single most informative feature — a collision spins the vehicle, a
+          pothole does not. No feature dominates, which is the point: this is not a threshold in disguise.</figcaption>
+      </figure>
+    </section>
+
+    <section id="algorithms">
+      <h2><span class="secnum">6</span>Algorithms evaluated, and the protocol</h2>
+      <div class="table-wrap"><table id="tbl-algos"></table></div>
+      <p><b>Protocol.</b> VZCrash's official splits are used unchanged: fit on train (137,954 events → 160,097
+        triggered windows), choose thresholds on validation (27,175 events), report on test (24,174 events). Class
+        weights balanced. Metrics are reported <b>per event</b> — did the device raise an alert during this 16 s event?
+        — with crash events that never cross the trigger counted as misses.</p>
+    </section>
+
+    <section id="results">
+      <h2><span class="secnum">7</span>Results</h2>
+      <figure>
+        <svg class="chart" id="fig-pr" role="img" aria-label="Precision-recall curves"></svg>
+        <div class="legend" id="pr-legend"></div>
+        <figcaption><b>Figure 4.</b> Precision–recall per event, computed from the exact model that ships in the
+          firmware. The proposed design dominates the Assessment-6 specification across the whole operating range;
+          the old threshold rule is a single point far below both. Markers show the shipped operating point,
+          P(crash) ≥ 0.80.</figcaption>
+      </figure>
+
+      <div class="cols">
+        <figure>
+          <svg class="chart" id="fig-ap" role="img" aria-label="Average precision by model"></svg>
+          <figcaption><b>Figure 5.</b> Average precision, all twelve models.</figcaption>
+        </figure>
+        <figure>
+          <svg class="chart" id="fig-fa" role="img" aria-label="False alarms per 1000 events"></svg>
+          <figcaption><b>Figure 6.</b> False alarms per 1,000 events at P ≥ 0.80. Lower is better.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <svg class="chart" id="fig-scatter" role="img" aria-label="Recall against false alarm rate"></svg>
+        <figcaption><b>Figure 7.</b> The trade-off every model makes at the same threshold. Up and to the left is
+          better. The decision tree catches the most crashes and is unusable — it also alarms on 7.6 % of non-crash
+          events. The selected model sits at the knee.</figcaption>
+      </figure>
+
+      <h3>7.1 Full comparison</h3>
+      <div class="table-wrap"><table id="tbl-models"></table></div>
+
+      <h3>7.2 What each sensor is worth</h3>
+      <div class="cols">
+        <figure>
+          <svg class="chart" id="fig-sensors" role="img" aria-label="Sensor ablation"></svg>
+          <figcaption><b>Figure 8.</b> Same algorithm, same windows — only the inputs change. The gyroscope is already
+            on the board and costs nothing; GPS speed is the recommended upgrade.</figcaption>
+        </figure>
+        <figure>
+          <svg class="chart" id="fig-window" role="img" aria-label="Window ablation"></svg>
+          <figcaption><b>Figure 9.</b> Why 2.5 s and not the specified 200 ms. Changing only the classifier buys
+            +0.028 AP; changing the window and features buys a further +0.032.</figcaption>
+        </figure>
+      </div>
+
+      <h3>7.3 Where it still fails</h3>
+      <div class="cols">
+        <figure>
+          <svg class="chart" id="fig-severity" role="img" aria-label="Detection rate by impact severity"></svg>
+          <figcaption><b>Figure 10.</b> Detection at P ≥ 0.80 by how hard the impact was. Below 1.5 g a real crash and
+            a hard pothole are close to indistinguishable from inertial data alone — the 0.50–0.80 countdown band
+            exists for exactly this case.</figcaption>
+        </figure>
+        <figure>
+          <svg class="chart" id="fig-vehicle" role="img" aria-label="Detection rate by vehicle class"></svg>
+          <figcaption><b>Figure 11.</b> Heavier vehicles absorb impact, so the same collision registers as a smaller
+            jolt. A fleet deployment should set the threshold per vehicle class.</figcaption>
+        </figure>
+      </div>
+
+      <h3>7.4 Model B — naming the jolt</h3>
+      <div class="cols">
+        <div class="table-wrap"><table class="cm" id="tbl-cm"></table></div>
+        <figure>
+          <svg class="chart" id="fig-roadf1" role="img" aria-label="Per-class F1 of the road model"></svg>
+          <figcaption><b>Figure 12.</b> Per-class F1. Speed bumps are the weak class: the road dataset labels road
+            quality per stretch rather than per event, and holds only 95 bump crossings.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="embedded">
+      <h2><span class="secnum">8</span>It runs on the device, and it is provably the same maths</h2>
+      <div class="stats" id="fw-stats"></div>
+      <p>The same computation is implemented three times — Python for training, C for the firmware, JavaScript for the
+        dashboard. A verification harness compiles the firmware headers on the host and compares them against Python on
+        1,987 real windows:</p>
+      <pre id="parity"></pre>
+      <p>This is what makes the reported accuracy a statement about the deployed device rather than about an offline
+        notebook.</p>
+    </section>
+
+    <section id="published">
+      <h2><span class="secnum">9</span>Against the published state of the art</h2>
+      <div class="table-wrap"><table id="tbl-published"></table></div>
+      <div class="note"><b>Caveat, stated plainly.</b> The published figures are computed over every event in the
+        dataset, while this system only sees events crossing its 0.45 g trigger — untriggered crashes are counted as
+        misses here, but the candidate set differs, so the comparison is indicative rather than strictly like-for-like.
+        The defensible claim is that a microcontroller-sized model lands between the paper's physics baseline and its
+        deep networks.</div>
+    </section>
+
+    <section id="limits">
+      <h2><span class="secnum">10</span>Limitations</h2>
+      <ol>
+        <li><b>Gentle crashes.</b> Below 1.5 g only 21.2 % are detected. The countdown band is a mitigation, not a fix.</li>
+        <li><b>The negatives are hard by construction.</b> VZCrash's non-crash events were selected as interesting —
+          near misses, potholes, off-road manoeuvres. 2.43 % of <i>those</i> is not 2.43 % of driving time: over 200 s
+          of ordinary recorded driving (119 classified jolts) the system raised no crash alert at all.</li>
+        <li><b>Model B does not transfer across sensors.</b> On unseen iPhone drives it recognised only 1 of 12
+          confirmed potholes as a pothole, though it produced almost no false crash verdicts (1 in 252).</li>
+        <li><b>No on-vehicle validation yet.</b> Everything is measured on recorded data from other devices; the ESP32
+          timing, buzzer and cancel button have not been exercised in a moving vehicle.</li>
+        <li><b>Rollover remains a physics rule</b>, not a learned model: VZCrash carries no rollover label.</li>
+      </ol>
+    </section>
+
+    <section id="licence">
+      <h2><span class="secnum">11</span>Data, licences and what they mean for a patent</h2>
+      <div class="table-wrap"><table id="tbl-data"></table></div>
+      <p>Filing on the <b>method</b> (N1–N8) is unaffected by these licences. A commercial product must retrain
+        Model A on owned or commercially licensed crash recordings; the pipeline is unchanged, only the data source
+        swaps.</p>
+    </section>
+
+    <section id="claimset">
+      <h2><span class="secnum">12</span>Claim structure</h2>
+      <div class="claim">
+        <span class="tag">INDEPENDENT CLAIM · METHOD</span>
+        <p>A method of discriminating vehicular collisions from road-surface disturbances in a vehicle-mounted inertial
+          sensing device, comprising: maintaining a rolling buffer of tri-axial acceleration and angular rate;
+          estimating a gravity vector; detecting a candidate event when the gravity-referenced dynamic acceleration
+          exceeds a threshold; forming an analysis window spanning a pre-trigger interval and a post-trigger interval;
+          <b>re-anchoring</b> said window upon a subsequent larger disturbance; computing a feature vector in which
+          acceleration is decomposed into components parallel and perpendicular to the estimated gravity vector, and in
+          which angular rate is decomposed into components about and across said vector; evaluating a first trained
+          ensemble classifier to produce a collision confidence; and selecting between immediate transmission, a
+          time-limited operator-cancellable verification state, and classification by a second trained ensemble
+          classifier into road-disturbance categories, according to bands of said confidence.</p>
+      </div>
+      <p><b>Dependent claims.</b> The re-anchoring criterion (N3); the horizontal velocity-change feature (N1);
+        yaw-versus-tilt separation (N5); the two-model split and their independent training corpora (N2); transmission
+        of class and confidence over a sub-GHz link with receiver-side de-duplication (N8); the flattened-tree float32
+        deployment with verified decision parity (N6); speed-scaled pulse augmentation for low-severity impacts (N7).</p>
+    </section>
+
+    <section id="repro">
+      <h2><span class="secnum">13</span>Reproducibility</h2>
+      <div class="table-wrap"><table id="tbl-repro"></table></div>
+      <p class="small muted">Seeds are fixed (42). LightGBM training is not bit-reproducible across runs because of
+        multithreaded histogram ties, so the invariant enforced is that the exported firmware header matches the saved
+        model — which <code>verify_firmware.py</code> checks on every export.</p>
+    </section>
+
+    <footer>
+      Prepared from the measured results of this project. Underlying tables: <code>ml/results/</code> —
+      <code>vzcrash_comparison.csv</code>, <code>metrics_vzcrash.json</code>, <code>road_model.json</code>,
+      <code>pr_curves.json</code>, <code>firmware_parity.txt</code>. Text version: <code>ml/results/NOVELTY.md</code>.
+    </footer>
+  </main>
+</div>
+
+<script>
+const D = {"comparison":[{"model":"V1 rule |a| > 2.2 g (current firmware)","features":"accel","n_features":30,"deployable_on_esp32":true,"window_recall":0.9368920522,"window_precision":0.6505766063,"window_f1":0.7679144385,"window_fpr":0.0890764773,"window_pr_auc":0.6190112385,"window_roc_auc":0.9239077875,"event_pr_auc":0.702851833,"event_recall_at_p80":0.9355602938,"event_fpr_at_p80":0.069814063,"event_precision_at_p80":0.7392362411,"event_f1_at_p80":0.8258914567,"event_accuracy_at_p80":0.9311243485,"event_recall_tuned":0.9355602938,"event_fpr_tuned":0.069814063,"event_precision_tuned":0.7392362411,"event_f1_tuned":0.8258914567,"tuned_threshold":1.0,"false_alarms_per_1000_events":69.8140630482,"missed_crashes":272,"detected_crashes":3949,"fit_seconds":1.9073e-06,"host_inference_us":0.007750232},{"model":"Document V2: 200 ms + 8 features + logistic","features":"doc-200ms","n_features":8,"deployable_on_esp32":true,"window_recall":0.9271648873,"window_precision":0.7057973632,"window_f1":0.8014766202,"window_fpr":0.0684137583,"window_pr_auc":0.8882962943,"window_roc_auc":0.9740763325,"event_pr_auc":0.9020771141,"event_recall_at_p80":0.8424543947,"event_fpr_at_p80":0.0362852704,"event_precision_at_p80":0.8308411215,"event_f1_at_p80":0.8366074579,"event_accuracy_at_p80":0.9425415736,"event_recall_tuned":0.4491826581,"event_fpr_tuned":0.004260011,"event_precision_tuned":0.9570923776,"event_f1_tuned":0.6114156724,"tuned_threshold":0.986,"false_alarms_per_1000_events":4.2600110259,"missed_crashes":2325,"detected_crashes":1896,"fit_seconds":0.0580108166,"host_inference_us":0.0427727824},{"model":"Document V2 features + XGBoost","features":"doc-200ms","n_features":8,"deployable_on_esp32":true,"window_recall":0.9383155397,"window_precision":0.7231669409,"window_f1":0.816811235,"window_fpr":0.0635840578,"window_pr_auc":0.9248688538,"window_roc_auc":0.9815849339,"event_pr_auc":0.9304581826,"event_recall_at_p80":0.8862828714,"event_fpr_at_p80":0.0339297349,"event_precision_at_p80":0.8467632413,"event_f1_at_p80":0.8660724621,"event_accuracy_at_p80":0.9521386614,"event_recall_tuned":0.5555555556,"event_fpr_tuned":0.0049616599,"event_precision_tuned":0.959492635,"event_f1_tuned":0.703675919,"tuned_threshold":0.972,"false_alarms_per_1000_events":4.9616599008,"missed_crashes":1876,"detected_crashes":2345,"fit_seconds":0.3875458241,"host_inference_us":0.2837424535},{"model":"Logistic Regression","features":"accel+gyro","n_features":37,"deployable_on_esp32":true,"window_recall":0.9710557533,"window_precision":0.743911305,"window_f1":0.8424410826,"window_fpr":0.0591743312,"window_pr_auc":0.9350268645,"window_roc_auc":0.9890414346,"event_pr_auc":0.9367528946,"event_recall_at_p80":0.908315565,"event_fpr_at_p80":0.0342304415,"event_precision_at_p80":0.848793447,"event_f1_at_p80":0.8775463493,"event_accuracy_at_p80":0.9557375693,"event_recall_tuned":0.5190713101,"event_fpr_tuned":0.004711071,"event_precision_tuned":0.9588621444,"event_f1_tuned":0.6735321242,"tuned_threshold":0.986,"false_alarms_per_1000_events":4.7110710169,"missed_crashes":2030,"detected_crashes":2191,"fit_seconds":0.2336368561,"host_inference_us":0.1370200884},{"model":"Decision Tree","features":"accel+gyro","n_features":37,"deployable_on_esp32":true,"window_recall":0.9862396204,"window_precision":0.6237995198,"window_f1":0.764224653,"window_fpr":0.1052874722,"window_pr_auc":0.890296794,"window_roc_auc":0.9771207751,"event_pr_auc":0.9013349377,"event_recall_at_p80":0.9763089315,"event_fpr_at_p80":0.0759785496,"event_precision_at_p80":0.731062622,"event_f1_at_p80":0.8360722256,"event_accuracy_at_p80":0.9331513196,"event_recall_tuned":0.465055674,"event_fpr_tuned":0.0048614243,"event_precision_tuned":0.9529126214,"event_f1_tuned":0.6250597039,"tuned_threshold":0.995,"false_alarms_per_1000_events":4.8614243472,"missed_crashes":2258,"detected_crashes":1963,"fit_seconds":3.0208919048,"host_inference_us":0.0295008564},{"model":"Random Forest","features":"accel+gyro","n_features":37,"deployable_on_esp32":true,"window_recall":0.9684460261,"window_precision":0.7943179607,"window_f1":0.8727816977,"window_fpr":0.0443912477,"window_pr_auc":0.9578628584,"window_roc_auc":0.9921385358,"event_pr_auc":0.958517441,"event_recall_at_p80":0.8929163705,"event_fpr_at_p80":0.023354884,"event_precision_at_p80":0.8899645809,"event_f1_at_p80":0.8914380322,"event_accuracy_at_p80":0.9620253165,"event_recall_tuned":0.6858564321,"event_fpr_tuned":0.0061644865,"event_precision_tuned":0.9592445328,"event_f1_tuned":0.7998342312,"tuned_threshold":0.951,"false_alarms_per_1000_events":6.1644865434,"missed_crashes":1326,"detected_crashes":2895,"fit_seconds":11.3435528278,"host_inference_us":1.2722709627},{"model":"Extra Trees","features":"accel+gyro","n_features":37,"deployable_on_esp32":true,"window_recall":0.9693950178,"window_precision":0.7526247928,"window_f1":0.8473662381,"window_fpr":0.056402503,"window_pr_auc":0.9518352993,"window_roc_auc":0.9908006771,"event_pr_auc":0.9532475032,"event_recall_at_p80":0.8869936034,"event_fpr_at_p80":0.0257605373,"event_precision_at_p80":0.8792860498,"event_f1_at_p80":0.8831230098,"event_accuracy_at_p80":0.9590055431,"event_recall_tuned":0.6657190239,"event_fpr_tuned":0.0056633088,"event_precision_tuned":0.9613410879,"event_f1_tuned":0.7866741321,"tuned_threshold":0.938,"false_alarms_per_1000_events":5.6633087756,"missed_crashes":1411,"detected_crashes":2810,"fit_seconds":3.298566103,"host_inference_us":1.789881146},{"model":"MLP neural network","features":"accel+gyro","n_features":37,"deployable_on_esp32":true,"window_recall":0.9786476868,"window_precision":0.7736309077,"window_f1":0.864145805,"window_fpr":0.0506908572,"window_pr_auc":0.9599308245,"window_roc_auc":0.9927404736,"event_pr_auc":0.9605713432,"event_recall_at_p80":0.9410092395,"event_fpr_at_p80":0.0310730216,"event_precision_at_p80":0.8649825784,"event_f1_at_p80":0.9013956655,"event_accuracy_at_p80":0.9640522876,"event_recall_tuned":0.6981757877,"event_fpr_tuned":0.0058637799,"event_precision_tuned":0.9618146214,"event_f1_tuned":0.8090597117,"tuned_threshold":0.977,"false_alarms_per_1000_events":5.8637798827,"missed_crashes":1274,"detected_crashes":2947,"fit_seconds":3.3977098465,"host_inference_us":0.2461405125},{"model":"LightGBM","features":"accel+gyro","n_features":37,"deployable_on_esp32":true,"window_recall":0.9696322657,"window_precision":0.8139812786,"window_f1":0.8850151581,"window_fpr":0.039225568,"window_pr_auc":0.9634220121,"window_roc_auc":0.993309471,"event_pr_auc":0.9636145917,"event_recall_at_p80":0.9225302061,"event_fpr_at_p80":0.0243071217,"event_precision_at_p80":0.8892441197,"event_f1_at_p80":0.9055813953,"event_accuracy_at_p80":0.9664101928,"event_recall_tuned":0.7266050699,"event_fpr_tuned":0.0058637799,"event_precision_tuned":0.9632537688,"event_f1_tuned":0.8283592167,"tuned_threshold":0.966,"false_alarms_per_1000_events":5.8637798827,"missed_crashes":1154,"detected_crashes":3067,"fit_seconds":1.6753559113,"host_inference_us":2.2565236924},{"model":"XGBoost (accelerometer only)","features":"accel","n_features":30,"deployable_on_esp32":true,"window_recall":0.971767497,"window_precision":0.781232119,"window_f1":0.8661450624,"window_fpr":0.0481710134,"window_pr_auc":0.9552979701,"window_roc_auc":0.9917645049,"event_pr_auc":0.9558555286,"event_recall_at_p80":0.9170812604,"event_fpr_at_p80":0.0293690172,"event_precision_at_p80":0.868521427,"event_f1_at_p80":0.8921410463,"event_accuracy_at_p80":0.9612807148,"event_recall_tuned":0.6768538261,"event_fpr_tuned":0.0062146043,"event_precision_tuned":0.9584032204,"event_f1_tuned":0.7933907248,"tuned_threshold":0.969,"false_alarms_per_1000_events":6.2146043202,"missed_crashes":1364,"detected_crashes":2857,"fit_seconds":1.1443040371,"host_inference_us":0.4759583601},{"model":"XGBoost (accel + gyro)","features":"accel+gyro","n_features":37,"deployable_on_esp32":true,"window_recall":0.97485172,"window_precision":0.8009746589,"window_f1":0.8794007491,"window_fpr":0.0428793415,"window_pr_auc":0.9620220325,"window_roc_auc":0.993007588,"event_pr_auc":0.9622469446,"event_recall_at_p80":0.9253731343,"event_fpr_at_p80":0.026261715,"event_precision_at_p80":0.8817155756,"event_f1_at_p80":0.9030169923,"event_accuracy_at_p80":0.9652932903,"event_recall_tuned":0.7173655532,"event_fpr_tuned":0.0059138977,"event_precision_tuned":0.9624920534,"event_f1_tuned":0.8220442514,"tuned_threshold":0.967,"false_alarms_per_1000_events":5.9138976595,"missed_crashes":1193,"detected_crashes":3028,"fit_seconds":1.3614349365,"host_inference_us":0.4430692571},{"model":"XGBoost (accel + gyro + GPS)","features":"accel+gyro+gps","n_features":40,"deployable_on_esp32":true,"window_recall":0.97485172,"window_precision":0.8219643929,"window_f1":0.8919036249,"window_fpr":0.0373776826,"window_pr_auc":0.9675997065,"window_roc_auc":0.9941274538,"event_pr_auc":0.9676750492,"event_recall_at_p80":0.9336650083,"event_fpr_at_p80":0.0227033529,"event_precision_at_p80":0.8969048703,"event_f1_at_p80":0.9149158445,"event_accuracy_at_p80":0.9696781666,"event_recall_tuned":0.7536128879,"event_fpr_tuned":0.0056633088,"event_precision_tuned":0.9656952034,"event_f1_tuned":0.8465735196,"tuned_threshold":0.965,"false_alarms_per_1000_events":5.6633087756,"missed_crashes":1040,"detected_crashes":3181,"fit_seconds":1.4475522041,"host_inference_us":0.503835724}],"vz":{"selected":"LightGBM","totals":{"train":{"total":137954,"crash":22603,"near_miss":20802,"normal":94549},"validation":{"total":27175,"crash":4255,"near_miss":4246,"normal":18674},"test":{"total":24174,"crash":4221,"near_miss":3633,"normal":16320}},"window_counts":{"train":{"windows":160097,"crash":22559},"validation":{"windows":31252,"crash":4248},"test":{"windows":28026,"crash":4215}},"crash_recall_by_peak_g":{"<1.5 g":{"n":146,"recall":0.21232876712328766},"1.5-3 g":{"n":1093,"recall":0.8655077767612077},"3-6 g":{"n":2702,"recall":0.9785344189489267},">6 g":{"n":274,"recall":0.9963503649635036}},"crash_recall_by_vehicle_size":{"Heavy":{"n":929,"recall":0.8589881593110872},"Light":{"n":834,"recall":0.9400479616306955},"Medium":{"n":2203,"recall":0.946890603722197},"Unknown":{"n":249,"recall":0.9076305220883534}},"paper_baselines":{"note":"VZCrash paper, whole-dataset AP; our detector only sees events above the 0.45 g trigger","physical_baseline":0.8962,"cnn_rnn":0.9756,"cnn_transformer":0.9754,"chronos_bolt":0.9664},"firmware_alert_p":0.8},"importance":{"w_yaw_peak":0.05825,"dv_h_kmh":0.04591666666666667,"dtheta_impact":0.042333333333333334,"pre_std":0.041916666666666665,"sustained_h":0.041416666666666664,"zc_v":0.03891666666666667,"pre_h_mean":0.03808333333333333,"tilt_change_deg":0.0375,"h_energy_frac":0.035666666666666666,"peak_time":0.034833333333333334,"jerk_peak":0.034583333333333334,"post_gmag_dev":0.03275,"w_mean_post":0.030666666666666665,"post_std":0.030166666666666668},"road":{"selected":"XGBoost","classes":["NORMAL","SPEED_BUMP","POTHOLE_ROUGH_ROAD","HARSH_MANEUVER"],"confusion":[[125,2,7,7],[1,53,38,3],[41,31,3167,4],[5,1,6,43]],"counts":{"POTHOLE_ROUGH_ROAD":3243,"NORMAL":141,"SPEED_BUMP":95,"HARSH_MANEUVER":55},"comparison":{"XGBoost":{"macro_f1":0.7823350925162674,"accuracy":0.958687040181098},"Random Forest":{"macro_f1":0.7496157690888103,"accuracy":0.9402942840973402},"Logistic Regression":{"macro_f1":0.5851481726344439,"accuracy":0.845217883418223}},"per_class_f1":{"NORMAL":0.7987220447284346,"SPEED_BUMP":0.5824175824175825,"POTHOLE_ROUGH_ROAD":0.9803436000619099,"HARSH_MANEUVER":0.7678571428571429},"importance":{"sustained_h":0.14499971270561218,"jerk_peak":0.11651039868593216,"dv_h_kmh":0.09142449498176575,"zc_v":0.08783987164497375,"pre_h_mean":0.06356674432754517,"h_energy_frac":0.057158101350069046,"post_h_mean":0.03757032752037048,"n_above_1g":0.03550141304731369}},"pr":{"curves":{"Proposed: LightGBM, 2.5 s window, 37 accel+gyro features":{"ap":0.9636145916778477,"curve":[[0.0,1.0],[0.0085,1.0],[0.0168,1.0],[0.0253,1.0],[0.0336,1.0],[0.0422,1.0],[0.0505,1.0],[0.059,1.0],[0.0673,1.0],[0.0758,1.0],[0.0841,1.0],[0.0926,1.0],[0.1009,1.0],[0.1095,1.0],[0.1177,0.996],[0.1263,0.9963],[0.1346,0.9965],[0.1431,0.9967],[0.1514,0.9969],[0.1597,0.997],[0.1682,0.9972],[0.1765,0.996],[0.185,0.9949],[0.1933,0.9951],[0.2018,0.9953],[0.2101,0.9955],[0.2187,0.9957],[0.227,0.9948],[0.2355,0.995],[0.2438,0.9952],[0.2523,0.9953],[0.2606,0.9955],[0.2691,0.9956],[0.2774,0.9957],[0.2857,0.995],[0.2942,0.9952],[0.3025,0.9945],[0.3111,0.9947],[0.3194,0.9948],[0.3279,0.995],[0.3362,0.9937],[0.3447,0.9939],[0.353,0.992],[0.3615,0.9916],[0.3698,0.9911],[0.3783,0.9913],[0.3866,0.9915],[0.3952,0.9911],[0.4035,0.9895],[0.412,0.9898],[0.4203,0.9889],[0.4286,0.9885],[0.4371,0.9882],[0.4454,0.9879],[0.4539,0.9871],[0.4622,0.9863],[0.4707,0.9866],[0.479,0.9854],[0.4876,0.9842],[0.4959,0.9845],[0.5044,0.9838],[0.5127,0.9836],[0.5212,0.9835],[0.5295,0.9816],[0.538,0.9801],[0.5463,0.9796],[0.5548,0.9787],[0.5631,0.9778],[0.5714,0.9769],[0.58,0.9772],[0.5882,0.9768],[0.5968,0.9767],[0.6051,0.9756],[0.6136,0.9737],[0.6219,0.9737],[0.6304,0.9733],[0.6387,0.9726],[0.6475,0.9705],[0.6555,0.9695],[0.6643,0.9689],[0.6724,0.9689],[0.6809,0.969],[0.6892,0.9674],[0.6977,0.9662],[0.706,0.9657],[0.7143,0.9639],[0.7228,0.964],[0.7311,0.9632],[0.7396,0.9603],[0.7479,0.9575],[0.7565,0.9557],[0.7647,0.9536],[0.7733,0.953],[0.7816,0.9504],[0.7901,0.9485],[0.7986,0.9469],[0.8069,0.9448],[0.8152,0.9443],[0.8237,0.9413],[0.832,0.9393],[0.8406,0.9374],[0.8489,0.9348],[0.8571,0.932],[0.8657,0.9286],[0.874,0.9236],[0.8825,0.9191],[0.8908,0.9135],[0.8993,0.9097],[0.9076,0.9046],[0.9161,0.8956],[0.9244,0.8864],[0.933,0.8769],[0.9412,0.8688],[0.9498,0.8583],[0.9581,0.8457],[0.9666,0.8286],[0.9749,0.8084],[0.9834,0.7794],[0.9917,0.7014],[1.0,0.1746]],"operating_point":{"recall":0.9225302061122956,"precision":0.8892441196620233,"fpr":0.02430712173607979,"threshold":0.8}},"Document V2: 200 ms window, 8 features, logistic":{"ap":0.9020771141394092,"curve":[[0.0,1.0],[0.0085,0.973],[0.0168,0.9861],[0.0253,0.9907],[0.0336,0.993],[0.0422,0.9944],[0.0505,0.9907],[0.059,0.992],[0.0675,0.993],[0.0758,0.9938],[0.0841,0.9944],[0.0926,0.9949],[0.1009,0.9907],[0.1095,0.9914],[0.1177,0.992],[0.1263,0.9926],[0.1346,0.9913],[0.1429,0.9869],[0.1514,0.9861],[0.1597,0.9825],[0.1682,0.982],[0.1765,0.9828],[0.185,0.9836],[0.1933,0.9808],[0.2018,0.9793],[0.2101,0.9801],[0.2187,0.9809],[0.227,0.9806],[0.2355,0.9803],[0.2438,0.9791],[0.2525,0.9789],[0.2606,0.9786],[0.2691,0.9776],[0.2774,0.9766],[0.2857,0.9734],[0.2942,0.9711],[0.3025,0.9704],[0.3111,0.9697],[0.3194,0.9684],[0.3279,0.9685],[0.3362,0.9686],[0.3447,0.9694],[0.353,0.9688],[0.3615,0.9664],[0.3698,0.9654],[0.3783,0.9655],[0.3866,0.9657],[0.3952,0.9636],[0.4035,0.9627],[0.412,0.9613],[0.4203,0.96],[0.4286,0.9587],[0.4371,0.9574],[0.4454,0.9572],[0.4539,0.9561],[0.4622,0.9531],[0.4707,0.9503],[0.4793,0.9467],[0.4876,0.9449],[0.4959,0.9436],[0.5044,0.9404],[0.5127,0.936],[0.5212,0.9346],[0.5295,0.932],[0.538,0.9292],[0.5463,0.928],[0.5548,0.9261],[0.5631,0.9242],[0.5714,0.9217],[0.58,0.9196],[0.5882,0.9156],[0.5968,0.9127],[0.6051,0.9086],[0.6136,0.9072],[0.6219,0.9052],[0.6304,0.9033],[0.6387,0.9017],[0.6472,0.9011],[0.6555,0.8998],[0.6641,0.8961],[0.6724,0.8944],[0.6809,0.8914],[0.6892,0.8896],[0.6977,0.8876],[0.706,0.8837],[0.7143,0.8813],[0.7228,0.8787],[0.7311,0.876],[0.7396,0.8738],[0.7479,0.8707],[0.7565,0.8679],[0.7647,0.8645],[0.7733,0.8626],[0.7816,0.86],[0.7901,0.8575],[0.7984,0.8545],[0.8069,0.8519],[0.8154,0.8476],[0.8237,0.8433],[0.832,0.8392],[0.8406,0.8327],[0.8489,0.8273],[0.8571,0.8236],[0.8657,0.8191],[0.8742,0.8142],[0.8825,0.8082],[0.8908,0.8002],[0.8993,0.793],[0.9076,0.782],[0.9161,0.7715],[0.9244,0.7515],[0.933,0.7306],[0.9412,0.7039],[0.9498,0.6655],[0.9581,0.6214],[0.9666,0.5849],[0.9749,0.5455],[0.9834,0.4682],[0.9917,0.369],[1.0,0.1746]],"operating_point":{"recall":0.8424543946932007,"precision":0.8308411214953271,"fpr":0.0362852703854057,"threshold":0.8}},"Accelerometer only: XGBoost, 30 features":{"ap":0.9558555286352763,"curve":[[0.0,1.0],[0.0085,1.0],[0.0168,1.0],[0.0253,1.0],[0.0336,1.0],[0.0424,1.0],[0.0505,1.0],[0.059,1.0],[0.0673,1.0],[0.0758,0.9969],[0.0841,0.9972],[0.0926,0.9974],[0.1009,0.9977],[0.1095,0.9935],[0.1177,0.994],[0.1263,0.9944],[0.1346,0.9947],[0.1429,0.995],[0.1514,0.9953],[0.1597,0.9956],[0.1682,0.9944],[0.1765,0.9947],[0.185,0.9949],[0.1933,0.9939],[0.2018,0.993],[0.2104,0.9922],[0.2187,0.9925],[0.2272,0.9928],[0.2355,0.992],[0.2438,0.9923],[0.2523,0.9925],[0.2606,0.9919],[0.2691,0.9921],[0.2774,0.9924],[0.2857,0.9926],[0.2942,0.992],[0.3025,0.9922],[0.3111,0.9924],[0.3194,0.9926],[0.3279,0.9921],[0.3362,0.9916],[0.3447,0.9911],[0.353,0.9907],[0.3615,0.9903],[0.3698,0.9905],[0.3783,0.9895],[0.3866,0.9885],[0.3952,0.9887],[0.4035,0.9884],[0.412,0.9881],[0.4203,0.9878],[0.4286,0.9874],[0.4371,0.9877],[0.4454,0.9869],[0.4539,0.9861],[0.4622,0.9859],[0.4707,0.9846],[0.479,0.982],[0.4876,0.9823],[0.4961,0.9817],[0.5044,0.982],[0.5127,0.9819],[0.5212,0.9804],[0.5295,0.9798],[0.538,0.9801],[0.5463,0.9779],[0.5548,0.9771],[0.5631,0.9766],[0.5714,0.9745],[0.58,0.9737],[0.5882,0.9726],[0.5968,0.9711],[0.6051,0.9707],[0.6136,0.9693],[0.6219,0.9669],[0.6304,0.9655],[0.6387,0.9642],[0.6475,0.9637],[0.6555,0.9621],[0.6641,0.9603],[0.6724,0.9581],[0.6809,0.958],[0.6892,0.9563],[0.6977,0.9549],[0.706,0.9533],[0.7143,0.9526],[0.7228,0.9505],[0.7311,0.9495],[0.7396,0.9486],[0.7479,0.948],[0.7565,0.9452],[0.7647,0.9428],[0.7733,0.9412],[0.7816,0.9404],[0.7901,0.9379],[0.7984,0.9343],[0.8069,0.9293],[0.8152,0.9277],[0.8237,0.9252],[0.832,0.9228],[0.8406,0.9213],[0.8489,0.914],[0.8571,0.9093],[0.8657,0.9054],[0.874,0.9017],[0.8825,0.8969],[0.8908,0.8904],[0.8993,0.8824],[0.9076,0.8781],[0.9161,0.8696],[0.9244,0.8625],[0.933,0.8528],[0.9412,0.8414],[0.9498,0.8316],[0.9581,0.8228],[0.9666,0.8025],[0.9749,0.7816],[0.9834,0.743],[0.9917,0.6769],[1.0,0.1746]],"operating_point":{"recall":0.9170812603648425,"precision":0.8685214269688131,"fpr":0.029369017190397435,"threshold":0.8}},"With GPS speed: XGBoost, 40 features":{"ap":0.9676750492267514,"curve":[[0.0,1.0],[0.0085,1.0],[0.0171,1.0],[0.0253,1.0],[0.0336,1.0],[0.0422,1.0],[0.0505,1.0],[0.059,1.0],[0.0673,1.0],[0.0758,1.0],[0.0841,1.0],[0.0926,1.0],[0.1009,1.0],[0.1095,0.9978],[0.1177,0.998],[0.1263,0.9981],[0.1346,0.9982],[0.1429,0.9983],[0.1514,0.9984],[0.1597,0.997],[0.1682,0.9972],[0.1765,0.9973],[0.185,0.9962],[0.1933,0.9963],[0.2018,0.9965],[0.2101,0.9966],[0.2187,0.9968],[0.227,0.9958],[0.2355,0.996],[0.2438,0.9952],[0.2523,0.9953],[0.2606,0.9955],[0.2691,0.9939],[0.2774,0.9941],[0.2857,0.9942],[0.2942,0.9936],[0.3025,0.993],[0.3111,0.9924],[0.3194,0.9926],[0.3279,0.9928],[0.3362,0.9923],[0.3447,0.9925],[0.353,0.9927],[0.3615,0.9928],[0.3698,0.9924],[0.3783,0.9925],[0.3866,0.9921],[0.3952,0.9905],[0.4035,0.9901],[0.412,0.9892],[0.4203,0.9894],[0.4286,0.9885],[0.4371,0.9877],[0.4456,0.9864],[0.4539,0.9856],[0.4622,0.9859],[0.4707,0.9846],[0.479,0.9839],[0.4876,0.9842],[0.4959,0.9831],[0.5044,0.9829],[0.5127,0.9823],[0.5212,0.9813],[0.5295,0.9811],[0.538,0.9806],[0.5463,0.9792],[0.5548,0.9795],[0.5631,0.9798],[0.5714,0.9801],[0.58,0.9788],[0.5882,0.9787],[0.5968,0.9783],[0.6051,0.9782],[0.6136,0.9777],[0.6219,0.9769],[0.6304,0.9772],[0.6387,0.9772],[0.6472,0.9754],[0.6555,0.975],[0.6641,0.975],[0.6724,0.9743],[0.6809,0.9739],[0.6892,0.9729],[0.6977,0.9723],[0.706,0.972],[0.7143,0.9707],[0.7228,0.9695],[0.7311,0.9692],[0.7396,0.9684],[0.7479,0.9675],[0.7565,0.9652],[0.7647,0.9624],[0.7733,0.96],[0.7816,0.9596],[0.7901,0.9572],[0.7984,0.956],[0.8069,0.9533],[0.8152,0.9511],[0.8237,0.949],[0.832,0.9466],[0.8406,0.9436],[0.8489,0.9412],[0.8571,0.9385],[0.8657,0.936],[0.874,0.9323],[0.8825,0.9301],[0.8908,0.9243],[0.8993,0.9191],[0.9076,0.9137],[0.9161,0.9116],[0.9244,0.9037],[0.933,0.8977],[0.9412,0.893],[0.95,0.8836],[0.9581,0.8723],[0.9666,0.8534],[0.9749,0.8242],[0.9834,0.7922],[0.9917,0.7362],[1.0,0.1746]],"operating_point":{"recall":0.9336650082918739,"precision":0.8969048702776513,"fpr":0.022703352879266277,"threshold":0.8}},"V1 rule: |a| > 2.2 g (current firmware)":{"ap":0.7028518329832634,"curve":[],"operating_point":{"recall":0.935560293769249,"precision":0.7392362411081992,"fpr":0.06981406304816318,"threshold":2.2}}},"test_events":{"total":24174,"crash":4221,"near_miss":3633,"normal":16320},"crash_prevalence":0.1746090841399851},"parity":"  worst feature error  post_std           1.49e-04\n  worst feature error  post_gmag_dev      1.18e-04\n  worst feature error  dv_v_kmh           2.71e-05\nwindows compared:             1987 (250 samples each; 513 VZCrash, 1474 road)\nfeature max relative error:   1.49e-04\ncrash model max |dP|:         6.67e-07 (99th pct 3.9e-07)\nsame alert decision (p>=.8):  100.0000%\nroad model same class:        100.0000%\nC inference on this host:     24.4 us per event (features + both models)\n"};
+
+// ---------------------------------------------------------------- chart toolkit
+const NS = "http://www.w3.org/2000/svg";
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const el = (tag, attrs = {}, text) => {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (text != null) n.textContent = text;
+  return n;
+};
+const fmtPct = (x, d = 1) => (x * 100).toFixed(d) + "%";
+
+function frame(svg, w, h) {
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", h);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+}
+
+// horizontal bars: rows = [{label, value, color?, highlight?, note?}]
+function hbars(svg, rows, { max, fmt = (v) => v.toFixed(3), labelW = 250, barH = 20, gap = 9, pad = 16, title }) {
+  const w = 780, h = pad * 2 + rows.length * (barH + gap) + (title ? 22 : 0) + 18;
+  frame(svg, w, h);
+  const top = pad + (title ? 22 : 0);
+  const plotW = w - labelW - 74;
+  const hi = max || Math.max(...rows.map((r) => r.value)) * 1.08;
+  if (title) svg.append(el("text", { x: pad, y: pad + 12, fill: css("--ink-2"), "font-size": 13, "font-family": css("--display") }, title));
+  for (let i = 0; i < 5; i++) {
+    const x = labelW + (plotW * i) / 4;
+    svg.append(el("line", { x1: x, y1: top - 4, x2: x, y2: h - 20, stroke: css("--grid"), "stroke-width": 1 }));
+    svg.append(el("text", { x, y: h - 6, fill: css("--ink-3"), "font-size": 11, "font-family": css("--mono"), "text-anchor": "middle" },
+      fmt((hi * i) / 4)));
+  }
+  rows.forEach((r, i) => {
+    const y = top + i * (barH + gap);
+    svg.append(el("text", { x: labelW - 10, y: y + barH * 0.72, fill: r.highlight ? css("--ink") : css("--ink-2"),
+      "font-size": 13, "font-family": css("--display"), "text-anchor": "end",
+      "font-weight": r.highlight ? 700 : 400 }, r.label));
+    const bw = Math.max(2, (r.value / hi) * plotW);
+    svg.append(el("rect", { x: labelW, y, width: bw, height: barH, rx: 3,
+      fill: r.color || (r.highlight ? css("--s1") : css("--ink-3")),
+      "fill-opacity": r.color || r.highlight ? 1 : 0.42 }));
+    svg.append(el("text", { x: labelW + bw + 8, y: y + barH * 0.72, fill: css("--ink-2"), "font-size": 12,
+      "font-family": css("--mono") }, r.note != null ? r.note : fmt(r.value)));
+  });
+}
+
+// line chart for the PR curves
+function lines(svg, series, { xlabel, ylabel, points = [] }) {
+  const w = 780, h = 420, L = 58, R = 16, T = 14, B = 46;
+  frame(svg, w, h);
+  const pw = w - L - R, ph = h - T - B;
+  const X = (v) => L + v * pw, Y = (v) => T + (1 - v) * ph;
+  for (let i = 0; i <= 5; i++) {
+    const gy = Y(i / 5), gx = X(i / 5);
+    svg.append(el("line", { x1: L, y1: gy, x2: L + pw, y2: gy, stroke: css("--grid") }));
+    svg.append(el("line", { x1: gx, y1: T, x2: gx, y2: T + ph, stroke: css("--grid") }));
+    svg.append(el("text", { x: L - 8, y: gy + 4, fill: css("--ink-3"), "font-size": 11, "font-family": css("--mono"), "text-anchor": "end" }, (i / 5).toFixed(1)));
+    svg.append(el("text", { x: gx, y: h - 24, fill: css("--ink-3"), "font-size": 11, "font-family": css("--mono"), "text-anchor": "middle" }, (i / 5).toFixed(1)));
+  }
+  svg.append(el("text", { x: L + pw / 2, y: h - 6, fill: css("--ink-2"), "font-size": 12, "font-family": css("--display"), "text-anchor": "middle" }, xlabel));
+  svg.append(el("text", { x: 14, y: T + ph / 2, fill: css("--ink-2"), "font-size": 12, "font-family": css("--display"),
+    "text-anchor": "middle", transform: `rotate(-90 14 ${T + ph / 2})` }, ylabel));
+  series.forEach((s) => {
+    if (s.curve && s.curve.length) {
+      const d = s.curve.map(([x, y], i) => `${i ? "L" : "M"}${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join("");
+      svg.append(el("path", { d, fill: "none", stroke: s.color, "stroke-width": s.width || 2.2, "stroke-linejoin": "round" }));
+    }
+  });
+  points.forEach((p) => {
+    svg.append(el("circle", { cx: X(p.x), cy: Y(p.y), r: 6, fill: css("--card"), stroke: p.color, "stroke-width": 2.5 }));
+    if (p.label) svg.append(el("text", { x: X(p.x) + (p.anchor === "end" ? -12 : 12), y: Y(p.y) + (p.dy || 4),
+      fill: css("--ink-2"), "font-size": 12, "font-family": css("--mono"), "text-anchor": p.anchor || "start" }, p.label));
+  });
+}
+
+// scatter of operating points
+function scatter(svg, rows, { xlabel, ylabel, xmax, ymin }) {
+  const w = 780, h = 400, L = 58, R = 130, T = 16, B = 46;
+  frame(svg, w, h);
+  const pw = w - L - R, ph = h - T - B;
+  const X = (v) => L + (v / xmax) * pw, Y = (v) => T + (1 - (v - ymin) / (1 - ymin)) * ph;
+  for (let i = 0; i <= 4; i++) {
+    const gx = L + (pw * i) / 4, gy = T + (ph * i) / 4;
+    svg.append(el("line", { x1: L, y1: gy, x2: L + pw, y2: gy, stroke: css("--grid") }));
+    svg.append(el("line", { x1: gx, y1: T, x2: gx, y2: T + ph, stroke: css("--grid") }));
+    svg.append(el("text", { x: gx, y: h - 24, fill: css("--ink-3"), "font-size": 11, "font-family": css("--mono"), "text-anchor": "middle" },
+      fmtPct((xmax * i) / 4, 0)));
+    svg.append(el("text", { x: L - 8, y: gy + 4, fill: css("--ink-3"), "font-size": 11, "font-family": css("--mono"), "text-anchor": "end" },
+      fmtPct(1 - ((1 - ymin) * i) / 4, 0)));
+  }
+  svg.append(el("text", { x: L + pw / 2, y: h - 6, fill: css("--ink-2"), "font-size": 12, "font-family": css("--display"), "text-anchor": "middle" }, xlabel));
+  svg.append(el("text", { x: 14, y: T + ph / 2, fill: css("--ink-2"), "font-size": 12, "font-family": css("--display"),
+    "text-anchor": "middle", transform: `rotate(-90 14 ${T + ph / 2})` }, ylabel));
+  rows.forEach((r) => {
+    const cx = X(r.x), cy = Y(r.y);
+    svg.append(el("circle", { cx, cy, r: r.highlight ? 8 : 5.5, fill: r.highlight ? css("--s1") : css("--ink-3"),
+      "fill-opacity": r.highlight ? 1 : 0.5, stroke: css("--card"), "stroke-width": 1.5 }));
+    if (r.label) svg.append(el("text", { x: cx + 11, y: cy + 4, fill: r.highlight ? css("--ink") : css("--ink-2"),
+      "font-size": 12, "font-family": css("--display"), "font-weight": r.highlight ? 700 : 400 }, r.label));
+  });
+}
+
+// ---------------------------------------------------------------- content
+const cmp = D.comparison;
+const by = (frag) => cmp.find((r) => r.model.startsWith(frag));
+const best = cmp.find((r) => r.model === D.vz.selected);
+const v1 = by("V1 rule");
+const docV2 = by("Document V2:");
+const shortName = (m) => m.replace(" (current firmware)", "").replace("Document V2: 200 ms + 8 features + logistic", "Document V2 (200 ms, logistic)")
+  .replace("Document V2 features + XGBoost", "Document V2 features + XGBoost").replace(" neural network", "")
+  .replace("XGBoost (accelerometer only)", "XGBoost (accel only)").replace("XGBoost (accel + gyro + GPS)", "XGBoost (+ GPS)")
+  .replace("XGBoost (accel + gyro)", "XGBoost (accel+gyro)").replace("V1 rule |a| > 2.2 g", "V1 rule |a| > 2.2 g");
+
+document.getElementById("headline").innerHTML = [
+  [best.event_pr_auc.toFixed(3), "average precision, per event", `old rule ${v1.event_pr_auc.toFixed(3)} · spec ${docV2.event_pr_auc.toFixed(3)}`],
+  [fmtPct(best.event_recall_at_p80), "of 4,221 real crashes detected", `old rule ${fmtPct(v1.event_recall_at_p80)}, at 3× the false alarms`],
+  [fmtPct(best.event_fpr_at_p80, 2), "false alarms on hard negatives", `old rule ${fmtPct(v1.event_fpr_at_p80, 2)}`],
+  ["339 KB", "both models, in flash", "24 µs per decision · 50 % of an ESP32"],
+].map(([v, l, s]) => `<div class="stat"><b>${v}</b><span>${l}</span><i>${s}</i></div>`).join("");
+
+const CLAIMS = [
+  ["N1", "Gravity-referenced, orientation-invariant features",
+   "Gravity is estimated from the first 0.5 s of each window and the acceleration is split into a <b>vertical</b> component (along gravity) and a <b>horizontal</b> magnitude (across it). Every feature is computed in that frame.",
+   "Conventional detectors use the resultant magnitude, which discards direction, or per-axis values, which depend on how the device is bolted in. The decomposition separates the two physical regimes a magnitude cannot: road anomalies excite the vertical axis through suspension travel, collisions excite the horizontal plane through momentum transfer.",
+   "Horizontal features dominate the trained model: <b>dv_h_kmh</b> (horizontal velocity change) and <b>sustained_h</b> rank 2nd and 5th of 37. The device can be mounted in any orientation without recalibration."],
+  ["N2", "Two-stage inference: detect, then explain",
+   "Model A (crash / not crash) runs first. Only if it clears the jolt does Model B name it as speed bump, pothole / rough road, harsh manoeuvre or normal. The two are trained on different datasets and exported as separate C headers.",
+   "The natural design is one multi-class model. Splitting means the safety-critical decision is trained only on <b>real crash data</b>, the road vocabulary can be retrained from cheap drives without touching the crash detector, and a weak road label cannot degrade crash recall.",
+   "Model A: <b>0.964 AP</b> on real crashes. Model B: <b>macro F1 0.782</b> on road events. The extra inference costs microseconds."],
+  ["N3", "Triggered window with re-anchoring",
+   "A 0.45 g gravity-referenced trigger opens a 2.5 s window — 1.0 s before the trigger from a ring buffer, 1.5 s after. If a substantially stronger jolt arrives while the window fills (<span class='mono'>dyn &gt; max(1 g, 1.5 × peak)</span>), the window <b>re-anchors</b> on it.",
+   "A plain triggered-window detector is blind for the duration of its own collection window: a pothole immediately followed by a collision would be classified as a pothole and the crash never examined. Re-anchoring closes that hole without a second buffer or a second pass.",
+   "Implemented identically in Python, C and JavaScript, and verified to produce the same event anchors in all three."],
+  ["N4", "Confidence-banded, driver-in-the-loop verification",
+   "The calibrated probability drives a three-way decision: <b>P ≥ 0.80</b> alerts immediately; <b>0.50–0.80</b> starts a 10 s buzzer countdown the driver can cancel; below 0.50 the event is logged and named.",
+   "It spends human attention only on genuinely ambiguous events, and gives the system a safe behaviour exactly where the data says it is weakest — gentle impacts. A cancelled countdown is also a labelled false positive: the cheapest possible on-vehicle training data.",
+   "At P ≥ 0.80: <b>2.43 %</b> false alarms. A validation-tuned threshold reaches <b>0.59 %</b> when a fleet wants it quieter."],
+  ["N5", "Gyroscope-augmented discrimination on a commodity IMU",
+   "Seven rotational features in the same gravity frame: peak rate, <b>yaw about gravity</b> separated from <b>tilt across it</b>, rotation integrated through the impact, rotational energy after it.",
+   "The gyroscope is conventionally used for sustained-tilt rollover detection, not for separating a collision from a pothole. Splitting spin about gravity from pitch/roll is what makes it discriminative: a collision imparts yaw, a pothole does not.",
+   "<b>w_yaw_peak is the single most important feature of 37.</b> Adding the gyroscope lifts AP 0.9559 → 0.9622 and cuts false alarms 2.94 % → 2.63 %, on identical windows with the same algorithm, at zero hardware cost."],
+  ["N6", "Deterministic tree deployment with verified parity",
+   "Both ensembles are flattened into pre-order C arrays (feature index, threshold, right-child index). Thresholds are converted to float32 with the rounding direction chosen so the on-device comparison reproduces the training library's branch exactly.",
+   "The usual embedded-ML route is a neural network plus an interpreter (TFLite Micro), which brings a runtime, a memory arena and quantisation error. Trees as pure data arrays need no runtime and are bitwise-inspectable — but only if float32 comparison semantics are handled, which is the contribution.",
+   "On 1,987 real windows: features to <b>1.5×10⁻⁴</b>, probability to <b>6.7×10⁻⁷</b>, and the <b>alert decision identical on 100 %</b>. 48,884 nodes in 339 KB, 24 µs per decision."],
+  ["N7", "Speed-scaled crash-pulse augmentation (method)",
+   "Real crash-test pulses are scaled in amplitude to synthesise lower-speed impacts: under a linear-spring crash model peak deceleration grows with impact speed while pulse duration stays roughly constant, so scaling by <i>s</i> approximates the same structure struck at <i>s</i> × the test speed, down to 8 km/h.",
+   "It populates the low-severity region, where public crash-test data is thin, with a physically justified transformation rather than fabricated waveforms.",
+   "Developed for the first-generation model trained on NHTSA crash tests; used for training and stress testing only, never for headline metrics. Directly useful to anyone without access to a dataset such as VZCrash."],
+  ["N8", "Semantic alert payload over the long-range link",
+   "The LoRa frame carries <span class='mono'>ALERT,&lt;class&gt;,&lt;confidence %&gt;,&lt;peak g&gt;</span>; non-crash events are optionally reported as <span class='mono'>EVENT</span> frames. The gateway puts class and confidence into the SMS and logs road events without dispatching one.",
+   "The alert stops being a bare interrupt and becomes a triaged message, and the same channel doubles as a road-quality reporting path at no extra energy cost.",
+   "A responder receives “AI verified CRASH (91 % confidence), impact 3.4 g” instead of a raw number."],
+];
+document.getElementById("claim-list").innerHTML = CLAIMS.map(([tag, title, what, why, ev]) => `
+  <div class="claim">
+    <span class="tag">${tag}</span>
+    <h3>${title}</h3>
+    <p>${what}</p>
+    <p class="why"><b>Why it is not the obvious choice.</b> ${why}</p>
+    <div class="evidence"><b>Evidence.</b> ${ev}</div>
+  </div>`).join("");
+
+const table = (id, head, rows, opts = {}) => {
+  const t = document.getElementById(id);
+  t.innerHTML = `<thead><tr>${head.map((h, i) => `<th class="${i && !opts.textCols?.includes(i) ? "num" : ""}">${h}</th>`).join("")}</tr></thead>`
+    + `<tbody>${rows.map((r) => `<tr class="${r.hi ? "hi" : ""}">${r.cells.map((c, i) =>
+      `<td class="${i && !opts.textCols?.includes(i) ? "num" : ""}${c.cell ? " cell" : ""}"${c.style ? ` style="${c.style}"` : ""}>${c.v != null ? c.v : c}</td>`).join("")}</tr>`).join("")}</tbody>`;
+};
+
+table("tbl-params", ["Parameter", "Value", "Why"], [
+  { cells: ["Sampling rate", "100 Hz", { v: "resolves a 50–200 ms crash pulse", style: "text-align:left;font-family:var(--serif)" }] },
+  { cells: ["Accelerometer range", "±16 g (2048 LSB/g)", { v: "real crashes exceed 6 g; ±2 g cannot represent the old threshold", style: "text-align:left;font-family:var(--serif)" }] },
+  { cells: ["Gyroscope range", "±2000 °/s (16.4 LSB/°/s)", { v: "measured crash rotation reaches 3,036 °/s", style: "text-align:left;font-family:var(--serif)" }] },
+  { cells: ["Anti-alias filter", "DLPF 44 Hz", { v: "below Nyquist at 100 Hz", style: "text-align:left;font-family:var(--serif)" }] },
+  { cells: ["Trigger", "0.45 g dynamic", { v: "catches every VZCrash crash event and every labelled speed bump", style: "text-align:left;font-family:var(--serif)" }] },
+  { cells: ["Window", "1.0 s pre + 1.5 s post", { v: "the context carries as much information as the peak (Figure 9)", style: "text-align:left;font-family:var(--serif)" }] },
+  { cells: ["Alert threshold", "P(crash) ≥ 0.80", { v: "2.43 % false alarms on hard negatives; none on ordinary driving", style: "text-align:left;font-family:var(--serif)" }] },
+], { textCols: [1, 2] });
+
+table("tbl-features", ["Group", "Features", "Physics it captures"], [
+  ["Impact magnitude", "peak dynamic / horizontal / vertical, h:v ratio, raw peak, peak jerk", "direction of the energy, not only its size"],
+  ["Impulse shape", "samples above 0.5/1/2/4 g, width at half peak, crest factor, peak position", "a crash pulse is short and tall; a bump is broad and repeated"],
+  ["Velocity change", "horizontal ΔV, vertical ΔV over ±300 ms", "a collision transfers momentum; a pothole does not"],
+  ["Road signature", "separated peaks, peak span, vertical zero crossings, pre-event roughness", "two axles hit a bump twice; the suspension then rings"],
+  ["Post-event state", "vibration in the last 0.5 s, sustained horizontal load, tilt change", "after a crash the vehicle stops, slews or rests tilted"],
+  ["Energy", "impact energy, post-trigger energy, horizontal energy fraction, early RMS", "total and directional energy budget"],
+  ["Rotation", "peak rate, mean post rate, rotation through impact, total rotation, peak yaw, peak tilt, rotational energy", "a collision spins the vehicle about gravity"],
+].map((r) => ({ cells: r.map((v) => ({ v, style: "text-align:left;white-space:normal;font-family:var(--serif)" })) })), { textCols: [0, 1, 2] });
+
+table("tbl-algos", ["Family", "Model", "Why it was included"], [
+  ["Rule", "V1 threshold |a| > 2.2 g", "the incumbent; the baseline to beat"],
+  ["Linear", "Logistic regression (8-feature 200 ms, and 37-feature)", "the Assessment-6 V2 design; smallest possible footprint"],
+  ["Single tree", "Decision tree, depth 10", "interpretability ceiling; what one tree can do"],
+  ["Bagged trees", "Random forest, extra trees", "variance reduction; strong tabular baseline"],
+  ["Boosted trees", "XGBoost, LightGBM", "state of the art on tabular features; exportable as plain arrays"],
+  ["Neural", "MLP 96–48", "tests whether a dense network beats trees on these features"],
+  ["Deep (reference)", "CNN-RNN, CNN-Transformer, Chronos-Bolt", "the VZCrash paper's published upper bound, 1.3–8.8 M parameters"],
+].map((r) => ({ cells: r.map((v) => ({ v, style: "text-align:left;white-space:normal;font-family:var(--serif)" })) })), { textCols: [0, 1, 2] });
+
+table("tbl-models", ["Model", "Inputs", "AP", "Recall @0.8", "False alarms @0.8", "Precision", "F1"],
+  cmp.map((r) => ({ hi: r.model === D.vz.selected, cells: [
+    { v: shortName(r.model), style: "text-align:left;font-family:var(--display)" }, r.features,
+    r.event_pr_auc.toFixed(4), fmtPct(r.event_recall_at_p80, 2), fmtPct(r.event_fpr_at_p80, 2),
+    fmtPct(r.event_precision_at_p80, 1), r.event_f1_at_p80.toFixed(3)] })), { textCols: [0] });
+
+const cm = D.road.confusion, RC = D.road.classes;
+const NICE = { NORMAL: "Normal jolt", SPEED_BUMP: "Speed breaker", POTHOLE_ROUGH_ROAD: "Pothole / rough", HARSH_MANEUVER: "Harsh manoeuvre" };
+table("tbl-cm", ["truth \\ predicted", ...RC.map((c) => NICE[c])],
+  cm.map((row, i) => {
+    const tot = row.reduce((a, b) => a + b, 0);
+    return { cells: [{ v: `${NICE[RC[i]]} <span class="tiny muted">(${tot})</span>`, style: "text-align:left;font-family:var(--display)" },
+      ...row.map((v) => ({ v, cell: true, style: `background:color-mix(in srgb, var(--s1) ${Math.round((v / tot) * 80)}%, transparent);${v / tot > 0.55 ? "color:#fff;" : ""}` }))] };
+  }), { textCols: [0] });
+
+table("tbl-published", ["System", "Parameters", "Average precision", "Runs on"], [
+  ["VZCrash physics baseline", "—", D.vz.paper_baselines.physical_baseline.toFixed(3), "—"],
+  ["Chronos-Bolt", "8.8 M", D.vz.paper_baselines.chronos_bolt.toFixed(3), "GPU / server"],
+  ["CNN-Transformer", "1.3 M", D.vz.paper_baselines.cnn_transformer.toFixed(3), "GPU / server"],
+  ["CNN-RNN", "1.7 M", D.vz.paper_baselines.cnn_rnn.toFixed(3), "GPU / server"],
+  ["This work", "37 features, 48.9 k nodes", best.event_pr_auc.toFixed(3), "ESP32 · 339 KB · 24 µs"],
+].map((r, i) => ({ hi: i === 4, cells: [{ v: r[0], style: "text-align:left;font-family:var(--display)" }, r[1], r[2], { v: r[3], style: "text-align:right;font-family:var(--mono)" }] })), { textCols: [0] });
+
+table("tbl-data", ["Dataset", "Used for", "Licence"], [
+  ["VZCrash — Bianconcini et al., IEEE ITSC 2026", "Model A training, all crash metrics", "CC BY-NC 4.0 (non-commercial)"],
+  ["PVS — Menegazzo & von Wangenheim, UFSC", "Model B: speed bumps, rough roads", "CC BY-NC-ND 4.0"],
+  ["Driver Behavior Dataset — Ferreira et al. 2017", "Model B: harsh manoeuvres", "no licence stated"],
+  ["NHTSA Vehicle Crash Test Database", "first-generation model; method N7", "US Government, public domain"],
+  ["Real-World Pothole Drives — W. Stading", "external transfer test only", "CC BY-NC 4.0"],
+].map((r) => ({ cells: r.map((v) => ({ v, style: "text-align:left;white-space:normal;font-family:var(--serif)" })) })), { textCols: [0, 1, 2] });
+
+table("tbl-repro", ["Step", "Command"], [
+  ["Crash data (gated, free account)", "ml/scripts/download_vzcrash.py"],
+  ["Road data", "ml/scripts/download_data.py"],
+  ["Windows and features", "build_vzcrash.py · build_dataset.py"],
+  ["Model A — 12 models on official splits", "train_vzcrash.py"],
+  ["Model B — leave-one-vehicle-out", "train_road_model.py"],
+  ["Precision–recall curves", "pr_curves.py"],
+  ["Export to firmware and app", "export_model.py · export_streamlit.py"],
+  ["Verify C equals Python", "verify_firmware.py"],
+].map((r) => ({ cells: [{ v: r[0], style: "text-align:left;font-family:var(--serif)" }, { v: `<code>${r[1]}</code>`, style: "text-align:right" }] })), { textCols: [0] });
+
+document.getElementById("fw-stats").innerHTML = [
+  ["659 KB", "transmitter firmware", "50 % of ESP32 flash · 45 KB RAM"],
+  ["24,400", "nodes · Model A", "LightGBM, 400 trees, 168 KB"],
+  ["24,484", "nodes · Model B", "XGBoost, 1,000 trees, 171 KB"],
+  ["24 µs", "features + both models", "measured on the development host"],
+].map(([v, l, s]) => `<div class="stat"><b>${v}</b><span>${l}</span><i>${s}</i></div>`).join("");
+document.getElementById("parity").textContent = D.parity.trim();
+
+// ---------------------------------------------------------------- figures
+function drawAll() {
+  const S1 = css("--s1"), S2 = css("--s2"), S3 = css("--s3"), S4 = css("--s4"), CR = css("--crash"), GD = css("--good");
+
+  hbars(document.getElementById("fig-bench"), [
+    { label: "Old rule (|a| > 2.2 g)", value: v1.event_pr_auc },
+    { label: "Assessment-6 V2 specification", value: docV2.event_pr_auc },
+    { label: "VZCrash paper: physics baseline", value: D.vz.paper_baselines.physical_baseline },
+    { label: "This system (37 features, on-device)", value: best.event_pr_auc, highlight: true },
+    { label: "VZCrash paper: CNN-RNN (1.7 M params)", value: D.vz.paper_baselines.cnn_rnn },
+  ].map((r) => ({ ...r, note: r.value.toFixed(3) })), { max: 1, fmt: (v) => v.toFixed(2), labelW: 268, title: "Average precision per event — higher is better" });
+
+  hbars(document.getElementById("fig-importance"),
+    Object.entries(D.importance).map(([k, v], i) => ({ label: k, value: v, highlight: i === 0,
+      note: fmtPct(v, 1) })),
+    { fmt: (v) => fmtPct(v, 0), labelW: 178, barH: 15, gap: 7, title: "Share of model gain" });
+
+  const prColors = {
+    "Proposed: LightGBM, 2.5 s window, 37 accel+gyro features": S1,
+    "With GPS speed: XGBoost, 40 features": S3,
+    "Accelerometer only: XGBoost, 30 features": S4,
+    "Document V2: 200 ms window, 8 features, logistic": S2,
+  };
+  const series = Object.entries(D.pr.curves).filter(([k]) => prColors[k])
+    .map(([k, v]) => ({ curve: v.curve, color: prColors[k], width: k.startsWith("Proposed") ? 2.8 : 1.8 }));
+  const pts = Object.entries(D.pr.curves).filter(([k]) => prColors[k])
+    .map(([k, v]) => ({ x: v.operating_point.recall, y: v.operating_point.precision, color: prColors[k] }));
+  const v1p = D.pr.curves["V1 rule: |a| > 2.2 g (current firmware)"].operating_point;
+  pts.push({ x: v1p.recall, y: v1p.precision, color: CR, label: "V1 rule", anchor: "end" });
+  lines(document.getElementById("fig-pr"), series, { xlabel: "recall — share of real crashes detected", ylabel: "precision", points: pts });
+  document.getElementById("pr-legend").innerHTML = [
+    ["Proposed: LightGBM, 37 features (AP 0.964)", S1],
+    ["With GPS speed, 40 features (AP 0.968)", S3],
+    ["Accelerometer only, 30 features (AP 0.956)", S4],
+    ["Assessment-6 V2: 200 ms, 8 features (AP 0.902)", S2],
+    ["V1 rule |a| > 2.2 g — a single point (AP 0.703)", CR],
+  ].map(([t, c]) => `<span><i style="background:${c}"></i>${t}</span>`).join("");
+
+  const ordered = [...cmp].sort((a, b) => b.event_pr_auc - a.event_pr_auc);
+  hbars(document.getElementById("fig-ap"), ordered.map((r) => ({
+    label: shortName(r.model), value: r.event_pr_auc, highlight: r.model === D.vz.selected, note: r.event_pr_auc.toFixed(3),
+  })), { max: 1, fmt: (v) => v.toFixed(2), labelW: 216, barH: 15, gap: 7 });
+
+  const byFa = [...cmp].sort((a, b) => a.event_fpr_at_p80 - b.event_fpr_at_p80);
+  hbars(document.getElementById("fig-fa"), byFa.map((r) => ({
+    label: shortName(r.model), value: r.event_fpr_at_p80 * 1000, highlight: r.model === D.vz.selected,
+    color: r.model.startsWith("V1") ? CR : undefined, note: (r.event_fpr_at_p80 * 1000).toFixed(1),
+  })), { fmt: (v) => v.toFixed(0), labelW: 216, barH: 15, gap: 7 });
+
+  scatter(document.getElementById("fig-scatter"), cmp.map((r) => ({
+    x: r.event_fpr_at_p80, y: r.event_recall_at_p80, highlight: r.model === D.vz.selected,
+    label: ["V1 rule |a| > 2.2 g (current firmware)", "Decision Tree", "LightGBM", "Document V2: 200 ms + 8 features + logistic", "XGBoost (accel + gyro + GPS)"].includes(r.model) ? shortName(r.model) : "",
+  })), { xlabel: "false-alarm rate at P ≥ 0.80 — lower is better", ylabel: "crashes detected", xmax: 0.08, ymin: 0.8 });
+
+  const sens = [
+    ["Accelerometer only (30)", by("XGBoost (accelerometer only)").event_pr_auc, false],
+    ["+ gyroscope — shipped (37)", by("XGBoost (accel + gyro)").event_pr_auc, true],
+    ["+ GPS speed (40)", by("XGBoost (accel + gyro + GPS)").event_pr_auc, false],
+  ];
+  hbars(document.getElementById("fig-sensors"), sens.map(([label, value, hl]) => ({ label, value, highlight: hl, note: value.toFixed(4) })),
+    { max: 1, fmt: (v) => v.toFixed(2), labelW: 208, title: "Average precision — same algorithm, same windows" });
+
+  const win = [
+    ["200 ms, 8 feat., logistic", docV2.event_pr_auc, false],
+    ["200 ms, 8 feat., XGBoost", by("Document V2 features").event_pr_auc, false],
+    ["2.5 s, 37 feat., XGBoost", by("XGBoost (accel + gyro)").event_pr_auc, false],
+    ["2.5 s, 37 feat., LightGBM", best.event_pr_auc, true],
+  ];
+  hbars(document.getElementById("fig-window"), win.map(([label, value, hl]) => ({ label, value, highlight: hl, note: value.toFixed(4) })),
+    { max: 1, fmt: (v) => v.toFixed(2), labelW: 208, title: "Average precision by window and feature set" });
+
+  hbars(document.getElementById("fig-severity"),
+    Object.entries(D.vz.crash_recall_by_peak_g).map(([k, v]) => ({
+      label: `${k}  (${v.n.toLocaleString()} crashes)`, value: v.recall, note: fmtPct(v.recall),
+      color: v.recall > 0.9 ? GD : v.recall > 0.5 ? css("--warn") : CR,
+    })), { max: 1, fmt: (v) => fmtPct(v, 0), labelW: 198, barH: 22, gap: 10, title: "Detected at P ≥ 0.80, by peak dynamic acceleration" });
+
+  hbars(document.getElementById("fig-vehicle"),
+    Object.entries(D.vz.crash_recall_by_vehicle_size).map(([k, v]) => ({
+      label: `${k}  (${v.n.toLocaleString()})`, value: v.recall, note: fmtPct(v.recall),
+      color: v.recall > 0.9 ? GD : css("--warn"),
+    })), { max: 1, fmt: (v) => fmtPct(v, 0), labelW: 198, barH: 22, gap: 10, title: "Detected at P ≥ 0.80, by vehicle class" });
+
+  hbars(document.getElementById("fig-roadf1"),
+    Object.entries(D.road.per_class_f1).map(([k, v]) => ({ label: NICE[k], value: v, note: v.toFixed(3),
+      color: v > 0.75 ? S1 : css("--warn") })),
+    { max: 1, fmt: (v) => v.toFixed(1), labelW: 198, barH: 20, gap: 10, title: "Model B per-class F1 (out-of-fold)" });
+
+  // architecture diagram
+  const svg = document.getElementById("fig-arch");
+  frame(svg, 780, 300);
+  const box = (x, y, w, h, title, sub, accent) => {
+    svg.append(el("rect", { x, y, width: w, height: h, rx: 8, fill: css("--sunken"), stroke: accent || css("--rule"), "stroke-width": accent ? 2 : 1 }));
+    svg.append(el("text", { x: x + w / 2, y: y + 21, "text-anchor": "middle", fill: css("--ink"), "font-size": 13.5,
+      "font-family": css("--display"), "font-weight": 700 }, title));
+    (sub || []).forEach((s, i) => svg.append(el("text", { x: x + w / 2, y: y + 39 + i * 15, "text-anchor": "middle",
+      fill: css("--ink-2"), "font-size": 11.5, "font-family": css("--mono") }, s)));
+  };
+  const arrow = (x1, y1, x2, y2, label) => {
+    svg.append(el("line", { x1, y1, x2, y2, stroke: css("--ink-3"), "stroke-width": 1.6, "marker-end": "url(#ah)" }));
+    if (label) svg.append(el("text", { x: (x1 + x2) / 2, y: y1 === y2 ? y1 - 7 : (y1 + y2) / 2 - 4, "text-anchor": "middle",
+      fill: css("--ink-3"), "font-size": 11, "font-family": css("--mono") }, label));
+  };
+  const defs = el("defs");
+  const marker = el("marker", { id: "ah", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: "auto-start-reverse" });
+  marker.append(el("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: css("--ink-3") }));
+  defs.append(marker); svg.append(defs);
+  box(8, 20, 150, 64, "MPU6050", ["100 Hz, ±16 g", "±2000 °/s"]);
+  box(196, 20, 168, 64, "Trigger", ["|a − g| > 0.45 g", "window, re-anchor"]);
+  box(402, 20, 168, 64, "37 features", ["gravity frame:", "vertical / horizontal"]);
+  box(608, 8, 164, 88, "Model A", ["LightGBM", "400 trees", "P(crash)"], css("--s1"));
+  arrow(158, 52, 196, 52); arrow(364, 52, 402, 52); arrow(570, 52, 608, 52);
+  box(608, 128, 164, 64, "P ≥ 0.80", ["LoRa ALERT now", "→ SMS"], css("--crash"));
+  box(608, 208, 164, 64, "0.50 – 0.80", ["10 s countdown", "driver may cancel"], css("--warn"));
+  box(402, 168, 168, 74, "Model B", ["XGBoost, 4 classes", "bump / pothole /", "harsh / normal"], css("--s3"));
+  arrow(690, 96, 690, 128); arrow(690, 192, 690, 208);
+  arrow(608, 70, 570, 190, "P < 0.50");
+  svg.append(el("text", { x: 486, y: 262, "text-anchor": "middle", fill: css("--ink-3"), "font-size": 11.5,
+    "font-family": css("--mono") }, "logged · optional EVENT frame, no SMS"));
+  svg.append(el("text", { x: 8, y: 120, fill: css("--ink-3"), "font-size": 11.5, "font-family": css("--mono") },
+    "independent guard: tilt > 60° for 3 s → ROLLOVER"));
+}
+drawAll();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+addEventListener("resize", () => { clearTimeout(window._t); window._t = setTimeout(drawAll, 200); });
+
+// contents
+const toc = document.getElementById("toc");
+const secs = [...document.querySelectorAll("main section")];
+toc.innerHTML = '<span class="grp">Contents</span>' + secs.map((s) => {
+  const h = s.querySelector("h2");
+  return `<a href="#${s.id}">${h.textContent.replace(/^(\d+)\s*/, "$1. ")}</a>`;
+}).join("");
+const links = [...toc.querySelectorAll("a")];
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    if (e.isIntersecting) links.forEach((l) => l.classList.toggle("on", l.getAttribute("href") === "#" + e.target.id));
+  });
+}, { rootMargin: "-10% 0px -80% 0px" });
+secs.forEach((s) => obs.observe(s));
+</script>

@@ -1,0 +1,105 @@
+{
+  "selected": "XGBoost",
+  "classes": [
+    "NORMAL",
+    "SPEED_BUMP",
+    "POTHOLE_ROUGH_ROAD",
+    "HARSH_MANEUVER"
+  ],
+  "comparison": {
+    "XGBoost": {
+      "macro_f1": 0.7823350925162674,
+      "accuracy": 0.958687040181098,
+      "per_class_f1": {
+        "NORMAL": 0.7987220447284346,
+        "SPEED_BUMP": 0.5824175824175825,
+        "POTHOLE_ROUGH_ROAD": 0.9803436000619099,
+        "HARSH_MANEUVER": 0.7678571428571429
+      }
+    },
+    "Random Forest": {
+      "macro_f1": 0.7496157690888103,
+      "accuracy": 0.9402942840973402,
+      "per_class_f1": {
+        "NORMAL": 0.6578947368421053,
+        "SPEED_BUMP": 0.5698924731182796,
+        "POTHOLE_ROUGH_ROAD": 0.9706758663948565,
+        "HARSH_MANEUVER": 0.8
+      }
+    },
+    "Logistic Regression": {
+      "macro_f1": 0.5851481726344439,
+      "accuracy": 0.845217883418223,
+      "per_class_f1": {
+        "NORMAL": 0.4518664047151277,
+        "SPEED_BUMP": 0.3341902313624679,
+        "POTHOLE_ROUGH_ROAD": 0.9162381821197545,
+        "HARSH_MANEUVER": 0.6382978723404256
+      }
+    }
+  },
+  "counts": {
+    "POTHOLE_ROUGH_ROAD": 3243,
+    "NORMAL": 141,
+    "SPEED_BUMP": 95,
+    "HARSH_MANEUVER": 55
+  },
+  "confusion": [
+    [
+      125,
+      2,
+      7,
+      7
+    ],
+    [
+      1,
+      53,
+      38,
+      3
+    ],
+    [
+      41,
+      31,
+      3167,
+      4
+    ],
+    [
+      5,
+      1,
+      6,
+      43
+    ]
+  ],
+  "feature_importance": {
+    "sustained_h": 0.14499971270561218,
+    "jerk_peak": 0.11651039868593216,
+    "dv_h_kmh": 0.09142449498176575,
+    "zc_v": 0.08783987164497375,
+    "pre_h_mean": 0.06356674432754517,
+    "h_energy_frac": 0.057158101350069046,
+    "post_h_mean": 0.03757032752037048,
+    "n_above_1g": 0.03550141304731369,
+    "tilt_change_deg": 0.03424961492419243,
+    "amag_peak": 0.025490134954452515,
+    "energy_post": 0.02403777651488781,
+    "dv_v_kmh": 0.023703668266534805,
+    "post_gmag_dev": 0.023505711928009987,
+    "early_rms": 0.02320079505443573,
+    "pre_std": 0.021928980946540833,
+    "hv_ratio": 0.019017139449715614,
+    "n_above_0g5": 0.018999310210347176,
+    "v_peak": 0.017362840473651886,
+    "post_m_mean": 0.016562387347221375,
+    "m_peak": 0.016471389681100845,
+    "post_std": 0.015962017700076103,
+    "width_half": 0.014176566153764725,
+    "h_peak": 0.01313174981623888,
+    "energy_impact": 0.01298071350902319,
+    "crest": 0.01220396813005209,
+    "peak_span": 0.01031236071139574,
+    "peak_time": 0.009790441952645779,
+    "n_peaks": 0.006749611813575029,
+    "n_above_4g": 0.005591660272330046,
+    "n_above_2g": 0.0
+  }
+}

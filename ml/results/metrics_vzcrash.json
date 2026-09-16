@@ -1,0 +1,120 @@
+{
+  "selected": "LightGBM",
+  "totals": {
+    "train": {
+      "total": 137954,
+      "crash": 22603,
+      "near_miss": 20802,
+      "normal": 94549
+    },
+    "validation": {
+      "total": 27175,
+      "crash": 4255,
+      "near_miss": 4246,
+      "normal": 18674
+    },
+    "test": {
+      "total": 24174,
+      "crash": 4221,
+      "near_miss": 3633,
+      "normal": 16320
+    }
+  },
+  "firmware_alert_p": 0.8,
+  "window_counts": {
+    "train": {
+      "windows": 160097,
+      "crash": 22559
+    },
+    "validation": {
+      "windows": 31252,
+      "crash": 4248
+    },
+    "test": {
+      "windows": 28026,
+      "crash": 4215
+    }
+  },
+  "crash_recall_by_peak_g": {
+    "<1.5 g": {
+      "n": 146,
+      "recall": 0.21232876712328766
+    },
+    "1.5-3 g": {
+      "n": 1093,
+      "recall": 0.8655077767612077
+    },
+    "3-6 g": {
+      "n": 2702,
+      "recall": 0.9785344189489267
+    },
+    ">6 g": {
+      "n": 274,
+      "recall": 0.9963503649635036
+    }
+  },
+  "crash_recall_by_vehicle_size": {
+    "Heavy": {
+      "n": 929,
+      "recall": 0.8589881593110872
+    },
+    "Light": {
+      "n": 834,
+      "recall": 0.9400479616306955
+    },
+    "Medium": {
+      "n": 2203,
+      "recall": 0.946890603722197
+    },
+    "Unknown": {
+      "n": 249,
+      "recall": 0.9076305220883534
+    }
+  },
+  "feature_importance": {
+    "w_yaw_peak": 0.05825,
+    "dv_h_kmh": 0.04591666666666667,
+    "dtheta_impact": 0.042333333333333334,
+    "pre_std": 0.041916666666666665,
+    "sustained_h": 0.041416666666666664,
+    "zc_v": 0.03891666666666667,
+    "pre_h_mean": 0.03808333333333333,
+    "tilt_change_deg": 0.0375,
+    "h_energy_frac": 0.035666666666666666,
+    "peak_time": 0.034833333333333334,
+    "jerk_peak": 0.034583333333333334,
+    "post_gmag_dev": 0.03275,
+    "w_mean_post": 0.030666666666666665,
+    "post_std": 0.030166666666666668,
+    "w_peak": 0.028416666666666666,
+    "dv_v_kmh": 0.027083333333333334,
+    "w_tilt_peak": 0.025333333333333333,
+    "amag_peak": 0.025166666666666667,
+    "v_peak": 0.025,
+    "m_peak": 0.024916666666666667,
+    "h_peak": 0.024833333333333332,
+    "peak_span": 0.0245,
+    "hv_ratio": 0.024333333333333332,
+    "dtheta_post": 0.023916666666666666,
+    "w_energy_post": 0.0235,
+    "crest": 0.021916666666666668,
+    "early_rms": 0.021083333333333332,
+    "width_half": 0.020166666666666666,
+    "post_h_mean": 0.019666666666666666,
+    "n_above_0g5": 0.01875,
+    "energy_impact": 0.018,
+    "post_m_mean": 0.016416666666666666,
+    "energy_post": 0.014583333333333334,
+    "n_above_1g": 0.012833333333333334,
+    "n_peaks": 0.010333333333333333,
+    "n_above_2g": 0.005083333333333333,
+    "n_above_4g": 0.0011666666666666668
+  },
+  "paper_baselines": {
+    "note": "VZCrash paper, whole-dataset AP; our detector only sees events above the 0.45 g trigger",
+    "physical_baseline": 0.8962,
+    "cnn_rnn": 0.9756,
+    "cnn_transformer": 0.9754,
+    "chronos_bolt": 0.9664
+  }
+}

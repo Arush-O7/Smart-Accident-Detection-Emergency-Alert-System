@@ -1,0 +1,6 @@
+# Streamlit Community Cloud installs these. The app runs the exported trees with numpy,
+# so it does not need xgboost / lightgbm / scikit-learn at runtime.
+streamlit>=1.49
+numpy>=1.26
+pandas>=2.1
+altair>=5.2

@@ -1,0 +1,10 @@
+# Python / ML pipeline
+__pycache__/
+ml/.venv/
+ml/data/
+ml/results/*.npy
+ml/models/*.joblib
+# keep the two models the firmware ships
+!ml/models/crash_model_vzcrash.joblib
+!ml/models/road_model.joblib
+.DS_Store

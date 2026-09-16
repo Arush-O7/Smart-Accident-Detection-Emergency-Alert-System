@@ -1,0 +1,11 @@
+numpy==2.5.1
+pandas==3.0.5
+pyarrow==25.0.1
+scipy==1.18.0
+scikit-learn==1.9.0
+xgboost==3.4.1
+lightgbm==4.7.0
+torch==2.14.0
+joblib==1.5.3
+requests==2.34.2
+huggingface_hub[cli]==1.31.0   # only for scripts/download_vzcrash.py

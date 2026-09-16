@@ -1,0 +1,21 @@
+extracting features ...
+is_aug                 0     1
+label_name                    
+CRASH                887  2654
+HARSH_MANEUVER        55   220
+NORMAL               141  1013
+POTHOLE_ROUGH_ROAD  3243  3522
+SPEED_BUMP            95   110
+V1 threshold rule (current)    F1=0.8888 recall=0.9865 FPR=5.8574% minor<=30=0.960 minor<=15=0.974 ext_FA=0.0040 macroF1=nan size=0KB
+Logistic Regression            F1=0.9977 recall=0.9989 FPR=0.0849% minor<=30=0.988 minor<=15=0.986 ext_FA=0.0000 macroF1=0.672 size=1KB
+Decision Tree                  F1=0.9806 recall=0.9955 FPR=0.8772% minor<=30=0.967 minor<=15=0.970 ext_FA=0.0000 macroF1=0.528 size=2KB
+Random Forest                  F1=0.9978 recall=1.0000 FPR=0.1132% minor<=30=0.989 minor<=15=0.986 ext_FA=0.0040 macroF1=0.797 size=1190KB
+Extra Trees                    F1=0.9972 recall=1.0000 FPR=0.1415% minor<=30=0.990 minor<=15=0.988 ext_FA=0.0040 macroF1=0.783 size=2830KB
+XGBoost                        F1=0.9961 recall=1.0000 FPR=0.1981% minor<=30=0.991 minor<=15=0.990 ext_FA=0.0040 macroF1=0.815 size=456KB
+LightGBM                       F1=0.9978 recall=1.0000 FPR=0.1132% minor<=30=0.991 minor<=15=0.990 ext_FA=0.0040 macroF1=0.814 size=566KB
+SVM (RBF)                      F1=0.9938 recall=1.0000 FPR=0.3113% minor<=30=0.994 minor<=15=0.993 ext_FA=0.0119 macroF1=0.760 size=471KB
+k-Nearest Neighbours           F1=0.9961 recall=0.9989 FPR=0.1698% minor<=30=0.992 minor<=15=0.993 ext_FA=0.0040 macroF1=0.759 size=1399KB
+MLP neural network             F1=0.9989 recall=0.9989 FPR=0.0283% minor<=30=0.991 minor<=15=0.989 ext_FA=0.0040 macroF1=0.703 size=17KB
+1D-CNN (raw signal)            F1=0.9911 recall=0.9989 FPR=0.4244% minor<=30=0.992 minor<=15=0.990 ext_FA=0.0079 macroF1=0.745 size=32KB
+
+BEST: XGBoost

@@ -1,0 +1,212 @@
+{
+  "best_model": "XGBoost",
+  "classes": [
+    "NORMAL",
+    "SPEED_BUMP",
+    "POTHOLE_ROUGH_ROAD",
+    "HARSH_MANEUVER",
+    "CRASH"
+  ],
+  "features": [
+    "m_peak",
+    "h_peak",
+    "v_peak",
+    "hv_ratio",
+    "amag_peak",
+    "jerk_peak",
+    "n_above_0g5",
+    "n_above_1g",
+    "n_above_2g",
+    "n_above_4g",
+    "width_half",
+    "dv_h_kmh",
+    "dv_v_kmh",
+    "pre_std",
+    "pre_h_mean",
+    "post_std",
+    "post_m_mean",
+    "post_h_mean",
+    "tilt_change_deg",
+    "post_gmag_dev",
+    "n_peaks",
+    "peak_span",
+    "energy_impact",
+    "energy_post",
+    "zc_v",
+    "peak_time",
+    "h_energy_frac",
+    "crest",
+    "sustained_h",
+    "early_rms"
+  ],
+  "counts": {
+    "POTHOLE_ROUGH_ROAD": 3243,
+    "CRASH": 887,
+    "NORMAL": 141,
+    "SPEED_BUMP": 95,
+    "HARSH_MANEUVER": 55
+  },
+  "counts_augmented": {
+    "POTHOLE_ROUGH_ROAD": 3522,
+    "CRASH": 2654,
+    "NORMAL": 1013,
+    "HARSH_MANEUVER": 220,
+    "SPEED_BUMP": 110
+  },
+  "external_windows": 252,
+  "external_human_labels": {
+    "not_pothole": 141,
+    "unsure": 79,
+    "unreviewed trigger": 20,
+    "pothole": 12
+  },
+  "external_predicted_classes": {
+    "not_pothole": {
+      "NORMAL": 113,
+      "HARSH_MANEUVER": 14,
+      "SPEED_BUMP": 14
+    },
+    "unsure": {
+      "NORMAL": 48,
+      "SPEED_BUMP": 16,
+      "HARSH_MANEUVER": 15
+    },
+    "unreviewed trigger": {
+      "HARSH_MANEUVER": 10,
+      "SPEED_BUMP": 5,
+      "NORMAL": 4,
+      "CRASH": 1
+    },
+    "pothole": {
+      "HARSH_MANEUVER": 5,
+      "SPEED_BUMP": 3,
+      "NORMAL": 3,
+      "POTHOLE_ROUGH_ROAD": 1
+    }
+  },
+  "confusion_best": [
+    [
+      122,
+      4,
+      6,
+      8,
+      1
+    ],
+    [
+      0,
+      50,
+      42,
+      2,
+      1
+    ],
+    [
+      37,
+      38,
+      3161,
+      3,
+      4
+    ],
+    [
+      5,
+      0,
+      7,
+      42,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      887
+    ]
+  ],
+  "confusion_v1": [
+    [
+      141,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      95,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      3038,
+      0,
+      0,
+      0,
+      205
+    ],
+    [
+      53,
+      0,
+      0,
+      0,
+      2
+    ],
+    [
+      12,
+      0,
+      0,
+      0,
+      875
+    ]
+  ],
+  "crash_recall_by_configuration": {
+    "IMPACTOR INTO VEHICLE": {
+      "n": 287,
+      "recall": 1.0
+    },
+    "VEHICLE INTO BARRIER": {
+      "n": 343,
+      "recall": 1.0
+    },
+    "VEHICLE INTO POLE": {
+      "n": 110,
+      "recall": 1.0
+    },
+    "VEHICLE INTO VEHICLE": {
+      "n": 147,
+      "recall": 1.0
+    }
+  },
+  "n_crash_tests": 821,
+  "feature_importance": {
+    "m_peak": 0.023799553513526917,
+    "h_peak": 0.09993784129619598,
+    "v_peak": 0.005490994546562433,
+    "hv_ratio": 0.006962852086871862,
+    "amag_peak": 0.01090943906456232,
+    "jerk_peak": 0.06323662400245667,
+    "n_above_0g5": 0.005667965859174728,
+    "n_above_1g": 0.0018450802890583873,
+    "n_above_2g": 0.3552844822406769,
+    "n_above_4g": 0.0,
+    "width_half": 0.005635482259094715,
+    "dv_h_kmh": 0.014818191528320312,
+    "dv_v_kmh": 0.010096433572471142,
+    "pre_std": 0.006841239053755999,
+    "pre_h_mean": 0.026455894112586975,
+    "post_std": 0.00746157206594944,
+    "post_m_mean": 0.007986973039805889,
+    "post_h_mean": 0.011684793047606945,
+    "tilt_change_deg": 0.025256043300032616,
+    "post_gmag_dev": 0.009373613633215427,
+    "n_peaks": 0.041781675070524216,
+    "peak_span": 0.006421808153390884,
+    "energy_impact": 0.00910366140305996,
+    "energy_post": 0.021326309069991112,
+    "zc_v": 0.04501640796661377,
+    "peak_time": 0.0042420984245836735,
+    "h_energy_frac": 0.02953939698636532,
+    "crest": 0.04545903578400612,
+    "sustained_h": 0.083556167781353,
+    "early_rms": 0.01480837631970644
+  }
+}

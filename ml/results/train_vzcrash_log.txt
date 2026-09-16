@@ -1,0 +1,53 @@
+events per split (all, including never-triggered): {"train": {"total": 137954, "crash": 22603, "near_miss": 20802, "normal": 94549}, "validation": {"total": 27175, "crash": 4255, "near_miss": 4246, "normal": 18674}, "test": {"total": 24174, "crash": 4221, "near_miss": 3633, "normal": 16320}}
+V1 rule |a| > 2.2 g (current firmware)       eventAP=0.7029 recall@0.8=0.9356 FPR@0.8=6.9814% | tuned thr=1.000 recall=0.9356 FPR=6.9814% | windowAP=0.6190 (0s)
+Document V2: 200 ms + 8 features + logistic  eventAP=0.9021 recall@0.8=0.8425 FPR@0.8=3.6285% | tuned thr=0.986 recall=0.4492 FPR=0.4260% | windowAP=0.8883 (0s)
+Document V2 features + XGBoost               eventAP=0.9305 recall@0.8=0.8863 FPR@0.8=3.3930% | tuned thr=0.972 recall=0.5556 FPR=0.4962% | windowAP=0.9249 (0s)
+Logistic Regression                          eventAP=0.9368 recall@0.8=0.9083 FPR@0.8=3.4230% | tuned thr=0.986 recall=0.5191 FPR=0.4711% | windowAP=0.9350 (0s)
+Decision Tree                                eventAP=0.9013 recall@0.8=0.9763 FPR@0.8=7.5979% | tuned thr=0.995 recall=0.4651 FPR=0.4861% | windowAP=0.8903 (3s)
+Random Forest                                eventAP=0.9585 recall@0.8=0.8929 FPR@0.8=2.3355% | tuned thr=0.951 recall=0.6859 FPR=0.6164% | windowAP=0.9579 (11s)
+Extra Trees                                  eventAP=0.9532 recall@0.8=0.8870 FPR@0.8=2.5761% | tuned thr=0.938 recall=0.6657 FPR=0.5663% | windowAP=0.9518 (3s)
+MLP neural network                           eventAP=0.9606 recall@0.8=0.9410 FPR@0.8=3.1073% | tuned thr=0.977 recall=0.6982 FPR=0.5864% | windowAP=0.9599 (3s)
+LightGBM                                     eventAP=0.9636 recall@0.8=0.9225 FPR@0.8=2.4307% | tuned thr=0.966 recall=0.7266 FPR=0.5864% | windowAP=0.9634 (2s)
+XGBoost (accelerometer only)                 eventAP=0.9559 recall@0.8=0.9171 FPR@0.8=2.9369% | tuned thr=0.969 recall=0.6769 FPR=0.6215% | windowAP=0.9553 (1s)
+XGBoost (accel + gyro)                       eventAP=0.9622 recall@0.8=0.9254 FPR@0.8=2.6262% | tuned thr=0.967 recall=0.7174 FPR=0.5914% | windowAP=0.9620 (1s)
+XGBoost (accel + gyro + GPS)                 eventAP=0.9677 recall@0.8=0.9337 FPR@0.8=2.2703% | tuned thr=0.965 recall=0.7536 FPR=0.5663% | windowAP=0.9676 (1s)
+
+SELECTED: LightGBM
+{
+ "by_severity": {
+  "<1.5 g": {
+   "n": 146,
+   "recall": 0.21232876712328766
+  },
+  "1.5-3 g": {
+   "n": 1093,
+   "recall": 0.8655077767612077
+  },
+  "3-6 g": {
+   "n": 2702,
+   "recall": 0.9785344189489267
+  },
+  ">6 g": {
+   "n": 274,
+   "recall": 0.9963503649635036
+  }
+ },
+ "by_size": {
+  "Heavy": {
+   "n": 929,
+   "recall": 0.8589881593110872
+  },
+  "Light": {
+   "n": 834,
+   "recall": 0.9400479616306955
+  },
+  "Medium": {
+   "n": 2203,
+   "recall": 0.946890603722197
+  },
+  "Unknown": {
+   "n": 249,
+   "recall": 0.9076305220883534
+  }
+ }
+}
