@@ -56,7 +56,7 @@ def main():
         print(f"\nDownload refused: {type(e).__name__}\n{e}\n\n"
               "This dataset is gated. Accept the terms at\n"
               f"  https://huggingface.co/datasets/{REPO}\n"
-              "then log in with `ml/.venv/bin/hf auth login` (or set HF_TOKEN) and run this again.",
+              "then log in with `hf auth login` (or set HF_TOKEN) and run this again.",
               file=sys.stderr)
         return 1
 

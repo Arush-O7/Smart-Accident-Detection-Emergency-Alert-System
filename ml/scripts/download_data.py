@@ -10,7 +10,7 @@ Sources (all publicly downloadable, no login required):
   4. Real-World Pothole Drives (W. Stading, Austin TX). iPhone IMU (logged at 50 Hz) with human-labelled
      potholes. Used ONLY as an unseen external test set.            -> external false-positive test
 
-Usage:  ml/.venv/bin/python ml/scripts/download_data.py [--nhtsa-tests 700]
+Usage:  python ml/scripts/download_data.py [--nhtsa-tests 700]
 """
 import argparse
 import json

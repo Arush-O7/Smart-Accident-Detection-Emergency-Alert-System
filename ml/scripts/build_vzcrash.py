@@ -13,7 +13,7 @@ Outputs ml/data/processed/vzcrash_{split}.npz with the 40 features (30 accel + 7
 speed), the document's 8-feature 200 ms vector for the baseline, labels and event metadata, plus a
 small sample of raw windows for the demo.
 
-Usage: ml/.venv/bin/python ml/scripts/build_vzcrash.py [--jobs 8]
+Usage: python ml/scripts/build_vzcrash.py [--jobs 8]
 """
 import argparse
 from concurrent.futures import ProcessPoolExecutor
