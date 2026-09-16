@@ -29,7 +29,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     crash = joblib.load(ML / "models" / "crash_model_vzcrash.joblib")
     road = joblib.load(ML / "models" / "road_model.joblib")
-    road_classes = json.loads((ML / "results" / "road_model.json").read_text())["classes"]
+    road_classes = json.loads((ML / "results" / "road_model.json").read_text(encoding="utf-8"))["classes"]
 
     vz = np.load(ML / "data" / "processed" / "vzcrash_test.npz")["X"][::50, :N_FEATURES_EXT]
     road_ref = np.load(ML / "data" / "processed" / "features_train.npy")[::40, :N_FEATURES]
@@ -67,9 +67,9 @@ def main():
         replay={k: replay[k] for k in ("source", "truth", "road", "crash_time", "fs")},
         events=[{k: v for k, v in e.items() if k not in ("samples", "gyro")} for e in events],
         comparison=json.loads(comparison.to_json(orient="records")),
-        vzcrash=json.loads((ML / "results" / "metrics_vzcrash.json").read_text()),
-        road=json.loads((ML / "results" / "road_model.json").read_text()),
-        parity=(ML / "results" / "firmware_parity.txt").read_text(),
+        vzcrash=json.loads((ML / "results" / "metrics_vzcrash.json").read_text(encoding="utf-8")),
+        road=json.loads((ML / "results" / "road_model.json").read_text(encoding="utf-8")),
+        parity=(ML / "results" / "firmware_parity.txt").read_text(encoding="utf-8"),
     )
     (OUT / "meta.json").write_text(json.dumps(meta, separators=(",", ":")))
     for f in ("models.npz", "demo.npz", "meta.json"):

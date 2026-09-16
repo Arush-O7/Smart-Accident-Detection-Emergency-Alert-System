@@ -245,7 +245,7 @@ def fold_of_test(test_no):
 def nhtsa_events(store, pools):
     n_tests = 0
     for meta_path in sorted((RAW / "nhtsa").glob("*/meta.json")):
-        meta = json.loads(meta_path.read_text())
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
         fold = fold_of_test(meta["testNo"])
         kind = meta["configuration"].lower()
         for pulse_meta in meta["pulses"]:

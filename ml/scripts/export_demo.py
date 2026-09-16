@@ -31,7 +31,7 @@ PROC = ML / "data" / "processed"
 VZ = ML / "data" / "raw" / "vzcrash" / "data"
 DEMO = ROOT / "demo" / "data"
 DRIVE, T0, T1 = 7, 500.0, 700.0          # PVS drive 7 = vehicle 3, held out of the road model
-ROAD_CLASSES = json.loads((ML / "results" / "road_model.json").read_text())["classes"]
+ROAD_CLASSES = json.loads((ML / "results" / "road_model.json").read_text(encoding="utf-8"))["classes"]
 
 
 def size_phrase(size):
@@ -193,8 +193,8 @@ def main():
     DEMO.mkdir(parents=True, exist_ok=True)
     events = vzcrash_events() + road_events()
     comparison = pd.read_csv(ML / "results" / "vzcrash_comparison.csv")
-    vz_metrics = json.loads((ML / "results" / "metrics_vzcrash.json").read_text())
-    road_metrics = json.loads((ML / "results" / "road_model.json").read_text())
+    vz_metrics = json.loads((ML / "results" / "metrics_vzcrash.json").read_text(encoding="utf-8"))
+    road_metrics = json.loads((ML / "results" / "road_model.json").read_text(encoding="utf-8"))
     data = dict(replay=replay_stream(), events=events,
                 comparison=json.loads(comparison.to_json(orient="records")),
                 vzcrash=vz_metrics, road=road_metrics,

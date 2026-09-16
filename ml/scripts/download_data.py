@@ -99,7 +99,7 @@ BAD_CHANNEL = ("FAIL", "WIRE", "CUT", "QUESTION", "NOT RETURN", "NO VALID", "BRO
 def nhtsa_catalog():
     cache = RAW / "nhtsa" / "catalog.json"
     if cache.exists():
-        return json.loads(cache.read_text())
+        return json.loads(cache.read_text(encoding="utf-8"))
     tests, page = [], 0
     while True:
         r = get(f"{NHTSA}/by-search", params=dict(modelYearFrom=1995, count=1000, pageNumber=page)).json()
@@ -146,7 +146,7 @@ def fetch_nhtsa_test(t):
     folder = RAW / "nhtsa" / f"{tn:05d}"
     meta_path = folder / "meta.json"
     if meta_path.exists():
-        return json.loads(meta_path.read_text())
+        return json.loads(meta_path.read_text(encoding="utf-8"))
     vehicles = get(f"{NHTSA}/get-vehicle-info/{tn}").json()["results"]
     real_vehicles = {v["vehicleNo"] for v in vehicles
                      if (v.get("vehicleMake") or "") not in ("NHTSA", "OTHER")

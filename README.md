@@ -48,6 +48,35 @@ For reference, the VZCrash paper's own deep network (1.7 M parameters) scores 0.
 
 ---
 
+## 💻 Run It on a New Laptop
+
+Needs **Python 3.10+** and **Git**. Nothing below requires downloading any dataset.
+
+```bash
+git clone https://github.com/Arush-O7/Vehicle-Accident-Detection-Emergency-Alert-System.git
+cd Vehicle-Accident-Detection-Emergency-Alert-System
+python -m venv .venv
+```
+
+Activate the environment — **Windows:** `.venv\Scripts\activate` · **macOS / Linux:** `source .venv/bin/activate`
+
+```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+The app opens at http://localhost:8501.
+
+| Part | What you need |
+|---|---|
+| Streamlit app | the commands above |
+| HTML dashboard with live ESP32 | open `demo/index.html` in Chrome or Edge |
+| Firmware | Arduino IDE, the ESP32 board package, and the **MPU6050** (Electronic Cats) and **LoRa** (Sandeep Mistry) libraries |
+| Paper figures | `pip install -r ml/requirements.txt`, then `python ml/scripts/generate_paper_figures.py` |
+| Retraining the models | `pip install -r ml/requirements.txt`, then follow [ml/README.md](ml/README.md) (about 8 GB of data and a free HuggingFace account). **macOS only:** run `brew install libomp` first |
+
+---
+
 ## 🏗️ System Architecture
 
 ```

@@ -1,6 +1,8 @@
 # Python / ML pipeline
 __pycache__/
 ml/.venv/
+.venv/
+venv/
 ml/data/
 ml/results/*.npy
 ml/models/*.joblib

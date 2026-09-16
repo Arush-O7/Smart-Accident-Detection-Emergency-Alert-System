@@ -16,8 +16,8 @@ requirements.txt      streamlit, numpy, pandas, altair
 ## Run it locally
 
 ```bash
-ml/.venv/bin/python -m streamlit run streamlit_app.py
-# or, with streamlit on your PATH:  streamlit run streamlit_app.py
+pip install -r requirements.txt
+streamlit run streamlit_app.py
 ```
 
 Opens on http://localhost:8501. Views are shareable: `?view=Drive+replay`, `?view=Event+library`,
@@ -50,8 +50,8 @@ Notes:
 ## Rebuild the app's data after retraining
 
 ```bash
-ml/.venv/bin/python ml/scripts/export_model.py       # firmware headers + demo/data/model.js
-ml/.venv/bin/python ml/scripts/export_streamlit.py   # app/data/*.npz + meta.json
+python ml/scripts/export_model.py       # firmware headers + demo/data/model.js
+python ml/scripts/export_streamlit.py   # app/data/*.npz + meta.json
 ```
 
 ## What it cannot do

@@ -8,34 +8,35 @@ Results and caveats: [results/REPORT.md](results/REPORT.md).
 Python 3.11+ and a C compiler. Two datasets, two models:
 
 ```bash
-python3 -m venv --system-site-packages ml/.venv
-ml/.venv/bin/pip install -r ml/requirements.txt
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt -r ml/requirements.txt
 ```
 
 **Model A — crash detector (VZCrash, ~7.7 GB, gated).** Create a free HuggingFace account, accept the
 terms at https://huggingface.co/datasets/vzc-research-chapter/VZCrash, then:
 
 ```bash
-ml/.venv/bin/hf auth login
-ml/.venv/bin/python ml/scripts/download_vzcrash.py --split train --split validation --split test
-ml/.venv/bin/python ml/scripts/build_vzcrash.py          # ~4 min: trigger windows + 40 features
-ml/.venv/bin/python ml/scripts/train_vzcrash.py          # ~30 s: 12 models, official splits
+hf auth login
+python ml/scripts/download_vzcrash.py --split train --split validation --split test
+python ml/scripts/build_vzcrash.py          # ~4 min: trigger windows + 40 features
+python ml/scripts/train_vzcrash.py          # ~30 s: 12 models, official splits
 ```
 
 **Model B — road-event classifier (open datasets, ~400 MB).**
 
 ```bash
-ml/.venv/bin/python ml/scripts/download_data.py          # PVS, NHTSA, DriverBehavior, potholes
-ml/.venv/bin/python ml/scripts/build_dataset.py          # 2.5 s trigger windows
-ml/.venv/bin/python ml/scripts/train_road_model.py       # leave-one-vehicle-out CV
+python ml/scripts/download_data.py          # PVS, NHTSA, DriverBehavior, potholes
+python ml/scripts/build_dataset.py          # 2.5 s trigger windows
+python ml/scripts/train_road_model.py       # leave-one-vehicle-out CV
 ```
 
 **Ship them.**
 
 ```bash
-ml/.venv/bin/python ml/scripts/export_model.py           # -> crash_model.h, road_model.h, demo/data/model.js
-ml/.venv/bin/python ml/scripts/verify_firmware.py        # compiles the C and checks it matches Python
-ml/.venv/bin/python ml/scripts/export_demo.py            # -> demo/data (replay, event library, tables)
+python ml/scripts/export_model.py           # -> crash_model.h, road_model.h, demo/data/model.js
+python ml/scripts/verify_firmware.py        # compiles the C and checks it matches Python
+python ml/scripts/export_demo.py            # -> demo/data (replay, event library, tables)
 ```
 
 `train_compare.py` is the earlier crash model built from NHTSA crash tests, kept for comparison;

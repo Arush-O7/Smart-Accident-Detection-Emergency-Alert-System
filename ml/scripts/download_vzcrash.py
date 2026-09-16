@@ -11,12 +11,12 @@ It is gated and non-commercial (CC BY-NC 4.0), so you need a free account:
   2. Open https://huggingface.co/datasets/vzc-research-chapter/VZCrash and accept the terms
      (approval is automatic).
   3. Create a READ token:           https://huggingface.co/settings/tokens
-  4. Log in once:                   ml/.venv/bin/hf auth login
+  4. Log in once:                   hf auth login
      (or export HF_TOKEN=hf_xxx before running this script)
 
 Then, smallest split first (~1.1 GB):
 
-  ml/.venv/bin/python ml/scripts/download_vzcrash.py --split validation --shards 1
+  python ml/scripts/download_vzcrash.py --split validation --shards 1
 
 Full dataset is ~7.7 GB: --split train --split validation --split test  (no --shards limit).
 """

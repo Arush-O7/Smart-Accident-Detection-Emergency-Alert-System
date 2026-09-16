@@ -24,7 +24,7 @@ ACC_LSB, GYRO_LSB = 2048.0, 16.4
 
 def load():
     arrays = np.load(DATA / "models.npz")
-    meta = json.loads((DATA / "meta.json").read_text())
+    meta = json.loads((DATA / "meta.json").read_text(encoding="utf-8"))
     models = {}
     for name in ("crash", "road"):
         models[name] = dict(

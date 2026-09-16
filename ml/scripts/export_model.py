@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ML = ROOT / "ml"
 FW = ROOT / "transmitter_LORA" / "ml_crash_detector"
 WEB = ROOT / "demo" / "data" / "model.js"
-ROAD_CLASSES = json.loads((ML / "results" / "road_model.json").read_text())["classes"]
+ROAD_CLASSES = json.loads((ML / "results" / "road_model.json").read_text(encoding="utf-8"))["classes"]
 
 
 def main():

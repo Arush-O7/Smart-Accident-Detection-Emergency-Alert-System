@@ -1,6 +1,6 @@
 """Crash Verdict Console - Streamlit interface for the on-device crash classifier.
 
-Run locally:   ml/.venv/bin/streamlit run streamlit_app.py
+Run locally:   pip install -r requirements.txt && streamlit run streamlit_app.py
 Hosted:        Streamlit Community Cloud, entry point streamlit_app.py (see app/README.md)
 """
 import json
@@ -350,7 +350,13 @@ elif page == "Model comparison":
     with c4:
         st.subheader("Model B: naming the jolt")
         cm = pd.DataFrame(meta["road"]["confusion"], index=[NICE[c] for c in ROAD], columns=[NICE[c] for c in ROAD])
-        st.dataframe(cm.style.background_gradient(cmap="Blues", axis=1), width="stretch")
+        shares = cm.div(cm.sum(axis=1), axis=0)
+
+        def shade(col):  # row-normalised blue, no matplotlib needed
+            return [f"background-color: rgba(42, 120, 214, {0.85 * s:.2f}); color: {'white' if s > 0.55 else 'inherit'}"
+                    for s in shares[col.name]]
+
+        st.dataframe(cm.style.apply(shade, axis=0), width="stretch")
         st.caption(f"Macro F1 {meta['road']['comparison'][meta['road']['selected']]['macro_f1']:.3f}, "
                    f"accuracy {meta['road']['comparison'][meta['road']['selected']]['accuracy']:.1%}. "
                    "Rows are ground truth, columns the prediction.")
