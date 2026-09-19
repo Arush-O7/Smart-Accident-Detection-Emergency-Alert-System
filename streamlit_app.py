@@ -111,6 +111,15 @@ def road_bars(probs, height=None):
     ).properties(height=height or 34 * len(ROAD))
 
 
+def road_panel(probs, p_crash):
+    """Model B only runs when Model A clears the jolt, exactly as on the ESP32."""
+    if p_crash is not None and p_crash >= VERIFY_P:
+        st.caption("Not run: Model A flagged a possible crash, so the road classifier is skipped — "
+                   "the same order the ESP32 uses.")
+    else:
+        st.altair_chart(road_bars(probs if probs is not None else np.zeros(len(ROAD))), width="stretch")
+
+
 def crash_meter(p):
     df = pd.DataFrame({"p": [p]})
     bar = alt.Chart(df).mark_bar(color=RED if p >= VERIFY_P else GREEN, height=26).encode(
@@ -147,10 +156,11 @@ if page == "Overview":
 
     c = st.columns(4)
     c[0].metric("Crash detection (AP)", f"{best.event_pr_auc:.3f}", help="Average precision per event on the held-out test split")
-    c[1].metric("Crashes detected", f"{best.event_recall_at_p80:.1%}",
-                f"old rule {v1row.event_recall_at_p80:.1%}, at 3x the false alarms", delta_color="off")
+    c[1].metric("Crashes detected", f"{best.event_recall_at_p80:.1%}")
+    c[1].caption(f"old rule {v1row.event_recall_at_p80:.1%}, with 3× the false alarms")
     c[2].metric("False alarms", f"{best.event_fpr_at_p80:.2%}", f"{best.event_fpr_at_p80 - v1row.event_fpr_at_p80:+.2%} vs old rule", delta_color="inverse")
-    c[3].metric("Firmware size", "659 KB", "50% of ESP32 flash", delta_color="off")
+    c[3].metric("Firmware size", "659 KB")
+    c[3].caption("50% of ESP32 flash, both models")
 
     st.divider()
     left, right = st.columns([3, 2])
@@ -219,7 +229,7 @@ elif page == "Drive replay":
                 st.markdown(verdict_chip(last["p_crash"]) if last else "⚪ Monitoring — waiting for a jolt")
                 st.altair_chart(crash_meter(last["p_crash"] if last else 0.0), width="stretch")
                 st.markdown("#### Model B · what kind of jolt")
-                st.altair_chart(road_bars(last["road"] if last else np.zeros(len(ROAD))), width="stretch")
+                road_panel(last["road"] if last else None, last["p_crash"] if last else None)
         with status_area.container():
             m = st.columns(4)
             alerts = [e for e in seen if e["p_crash"] >= ALERT_P]
@@ -227,7 +237,8 @@ elif page == "Drive replay":
             m[0].metric("Events classified", len(seen))
             m[1].metric("AI crash alerts", len(alerts))
             m[2].metric("Old-rule alarms", len(v1_seen), f"{len(false_v1)} false", delta_color="inverse")
-            m[3].metric("Ground-truth crash", f"{crash_t:.0f} s", "reached" if t >= crash_t else "not yet", delta_color="off")
+            m[3].metric("Ground-truth crash", f"{crash_t:.0f} s")
+            m[3].caption("reached" if t >= crash_t else "not reached yet")
         return seen
 
     if play:
@@ -292,7 +303,7 @@ elif page == "Event library":
         m[0].metric("Old 2.2 g rule", "ALARM" if r["v1_alarm"] else "quiet")
         m[1].metric("Peak rotation", f"{r['w_peak']:.0f} °/s" if ev["source"] == "VZCrash" else "n/a")
         st.markdown("###### Model B · what kind of jolt")
-        st.altair_chart(road_bars(r["road"]), width="stretch")
+        road_panel(r["road"], r["p_crash"])
 
     crashes = [i for i, e in enumerate(meta["events"]) if e["truth"] == "CRASH"]
     found = sum(verdicts[i]["p_crash"] >= ALERT_P for i in crashes)
@@ -440,10 +451,12 @@ elif page == "Test your own data":
 else:
     st.title("How it runs on the ESP32")
     c = st.columns(3)
-    c[0].metric("Flash used", "659 KB", "50% of 1.31 MB", delta_color="off")
-    c[1].metric("RAM used", "45 KB", "13% of 320 KB", delta_color="off")
-    c[2].metric("Models on-device", f"{meta['models']['crash']['n_nodes'] + meta['models']['road']['n_nodes']:,} nodes",
-                "both models", delta_color="off")
+    c[0].metric("Flash used", "659 KB")
+    c[0].caption("50% of 1.31 MB")
+    c[1].metric("RAM used", "45 KB")
+    c[1].caption("13% of 320 KB")
+    c[2].metric("Models on-device", f"{meta['models']['crash']['n_nodes'] + meta['models']['road']['n_nodes']:,} nodes")
+    c[2].caption("both models")
 
     st.subheader("The same numbers, three times over")
     st.markdown("The Python pipeline, the C firmware and this app all run the same features and the same trees. "
