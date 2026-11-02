@@ -55,8 +55,8 @@ Flashing the ML transmitter: open `transmitter_LORA/ml_crash_detector/ml_crash_d
 You need Python 3.10+ and Git. No datasets are needed to run the app.
 
 ```bash
-git clone https://github.com/Arush-O7/Vehicle-Accident-Detection-Emergency-Alert-System.git
-cd Vehicle-Accident-Detection-Emergency-Alert-System
+git clone https://github.com/Arush-O7/Smart-Accident-Detection-Emergency-Alert-System.git
+cd Smart-Accident-Detection-Emergency-Alert-System
 python -m venv .venv
 ```
 

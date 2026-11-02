@@ -35,7 +35,7 @@ The app is already sized for it, the whole payload is about 520 KB, and no datas
    ```
 2. Sign in at **https://share.streamlit.io** with the GitHub account that owns the repo.
 3. **Create app → Deploy a public app from a repo**, then fill in:
-   - Repository: `Arush-O7/Vehicle-Accident-Detection-Emergency-Alert-System`
+   - Repository: `Arush-O7/Smart-Accident-Detection-Emergency-Alert-System`
    - Branch: `main`
    - Main file path: `streamlit_app.py`
 4. **Deploy.** The first build takes a couple of minutes; after that it redeploys on every push.
