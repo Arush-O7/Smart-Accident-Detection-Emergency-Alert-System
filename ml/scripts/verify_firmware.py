@@ -1,10 +1,4 @@
-"""Prove the firmware computes what Python computes, for both on-device models.
-
-Compiles crash_features.h + crash_model.h + road_model.h into a host program, feeds it real
-windows (VZCrash events for the crash model, PVS road events for the road model) and compares
-features and probabilities against the Python pipeline. ESP32 timing must be measured on the
-board; the sketch prints it with every event.
-"""
+"""Compile the C headers on the host and check they match the Python output."""
 import subprocess
 import tempfile
 from pathlib import Path

@@ -1,10 +1,4 @@
-"""Event-level precision-recall curves for the novelty report.
-
-Uses the exact crash model that ships in the firmware (ml/models/crash_model_vzcrash.joblib) and
-re-fits only the cheap baselines it is compared against, so the curves match the deployed system.
-
-Writes ml/results/pr_curves.json.
-"""
+"""Event-level precision-recall curves, written to ml/results/pr_curves.json."""
 import json
 from pathlib import Path
 
@@ -43,24 +37,24 @@ def main():
 
     curves = {}
 
-    # 1. the model that ships in the firmware
+    # shipped model
     shipped = joblib.load(ROOT / "models" / "crash_model_vzcrash.joblib")
     p_te = shipped.predict_proba(te["X"][:, :N_FEATURES_EXT])[:, 1]
     runs = {"Proposed: LightGBM, 2.5 s window, 37 accel+gyro features": p_te}
 
-    # 2. the document's V2 design, refitted on the same data
+    # V2 design (200 ms, 8 features)
     doc = make_pipeline(FunctionTransformer(signed_log), StandardScaler(),
                         LogisticRegression(max_iter=3000, class_weight="balanced"))
     doc.fit(tr["X_pdf"], y_tr, logisticregression__sample_weight=w)
     runs["Document V2: 200 ms window, 8 features, logistic"] = doc.predict_proba(te["X_pdf"])[:, 1]
 
-    # 3. accelerometer only, to show what the gyroscope adds
+    # accel only
     acc_only = XGBClassifier(n_estimators=400, max_depth=5, learning_rate=0.06, subsample=0.9,
                              colsample_bytree=0.8, n_jobs=8, random_state=42)
     acc_only.fit(tr["X"][:, :N_FEATURES], y_tr, sample_weight=w)
     runs["Accelerometer only: XGBoost, 30 features"] = acc_only.predict_proba(te["X"][:, :N_FEATURES])[:, 1]
 
-    # 4. with GPS speed, the upgrade path
+    # with GPS speed
     gps = XGBClassifier(n_estimators=400, max_depth=5, learning_rate=0.06, subsample=0.9,
                         colsample_bytree=0.8, n_jobs=8, random_state=42)
     gps.fit(tr["X"], y_tr, sample_weight=w)
@@ -75,7 +69,7 @@ def main():
                                                  fpr=at80["fpr"], threshold=FIRMWARE_ALERT_P))
         print(f"{name:62s} AP={curves[name]['ap']:.4f} recall@0.8={at80['recall']:.3f} precision@0.8={at80['precision']:.3f}")
 
-    # the old firmware rule is a single point, not a curve
+    # old 2.2 g rule is a single point
     v1 = (te["X"][:, 4] > 2.2).astype(float)
     scores, truth = event_scores(te, v1, totals["test"])
     r = rates(truth, scores, 0.5)

@@ -175,7 +175,7 @@
   <header class="top">
     <span class="eyebrow">LoRa accident detection · two AI models on an ESP32 + MPU6050</span>
     <h1>Crash, pothole or speed breaker?</h1>
-    <p class="lede">Every jolt above 0.45 g wakes two models on the device. <b>Model A</b> decides whether it was a crash, from 30 accelerometer and 7 gyroscope features — trained on <b>VZCrash</b>, 31,000 real crashes recorded on the road. <b>Model B</b> then names what the jolt actually was: a speed breaker, a pothole, harsh driving or nothing. Everything below runs on data the models never saw.</p>
+    <p class="lede">Every jolt above 0.45 g wakes two models on the device. <b>Model A</b> decides whether it was a crash, from 30 accelerometer and 7 gyroscope features - trained on <b>VZCrash</b>, 31,000 real crashes recorded on the road. <b>Model B</b> then names what the jolt actually was: a speed breaker, a pothole, harsh driving or nothing. Everything below runs on data the models never saw.</p>
     <div class="stats" id="stats"></div>
   </header>
 
@@ -310,7 +310,7 @@
       <h2>How to read these results</h2>
       <ul class="small" style="padding-left:18px;margin:0;max-width:80ch">
         <li><b>The crashes are real.</b> VZCrash contains 16 s of 100 Hz IMU data per event, labelled by three trained reviewers with dashcam footage. Nothing about the crash class is simulated or assembled.</li>
-        <li><b>The negatives are hard on purpose.</b> VZCrash's non-crash events were selected as interesting — near misses, potholes, harsh braking, off-road manoeuvres. A 2.4% false-alarm rate here is not 2.4% of driving time; on ordinary recorded driving (the PVS drives) this system raises no crash alert at all over 200 s and 119 jolts.</li>
+        <li><b>The negatives are hard on purpose.</b> VZCrash's non-crash events were selected as interesting - near misses, potholes, harsh braking, off-road manoeuvres. A 2.4% false-alarm rate here is not 2.4% of driving time; on ordinary recorded driving (the PVS drives) this system raises no crash alert at all over 200 s and 119 jolts.</li>
         <li><b>The trigger is part of the detector.</b> Events that never reach 0.45 g are never classified, and count as misses in every number here.</li>
         <li><b>Model B is the weaker half.</b> Speed bumps and rough road are labelled per drive in PVS, not per event, and only 95 bump crossings exist. It tells a bump from a crash reliably, and a bump from rough road about half the time.</li>
       </ul>
@@ -426,7 +426,6 @@
     el.innerHTML = ROAD.map((c, i) => `<div class="bar"><span class="name">${NICE[c]}</span><span class="track"><span class="fill" style="width:${((p ? p[i] : 0) * 100).toFixed(1)}%"></span></span><span class="pct">${p ? pct(p[i], 0) : "–"}</span></div>`).join("");
   }
 
-  // ---------------- live detector
   const R = D.replay, TOTAL = R.samples.length / 3, FS = R.fs;
   let source = "replay", playing = false, speed = 5, cursor = 0, detector, lastFrame = 0;
   let serialFlat = [], serialDet, events = [], v1Alarms = [], v1Last = -1e9, counts, replayFloat = null, replayGyro = null;
@@ -462,7 +461,7 @@
     const alert = ev.pCrash >= ALERT_P, verify = !alert && ev.pCrash >= 0.5;
     $("ai-label").textContent = alert ? "Crash" : verify ? "Possible crash" : "No crash";
     $("ai-sub").textContent = alert ? "LoRa ALERT sent · receiver dispatches the SMS"
-      : verify ? "10 s buzzer countdown — the driver can cancel" : `t = ${ev.t.toFixed(1)} s · logged, no SMS`;
+      : verify ? "10 s buzzer countdown - the driver can cancel" : `t = ${ev.t.toFixed(1)} s · logged, no SMS`;
     chip.className = "chip " + (alert ? "crash" : verify ? "warn" : "safe");
     chip.textContent = alert ? "crash alert" : verify ? "verifying" : "no alert";
     card.classList.toggle("alert", alert);
@@ -626,7 +625,6 @@
     }
   });
 
-  // ---------------- event library
   let current = 0;
   const evList = $("ev-list");
   D.events.forEach((ev, i) => {
@@ -670,7 +668,6 @@
     if (ev.gyro) plotGyro($("evgyro"), Float32Array.from(ev.gyro, (x) => x / 16.4), { shade: [0, 100] });
   }
 
-  // ---------------- comparison
   const tip = $("tip");
   function hbars(el, rows, value, fmt, scaleMax) {
     const max = scaleMax || Math.max(...rows.map((r) => value(r)));

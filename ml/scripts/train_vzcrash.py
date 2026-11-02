@@ -1,20 +1,6 @@
-"""Train and compare crash detectors on VZCrash (real on-road crashes).
+"""Train and compare crash detectors on VZCrash (model A).
 
-Uses the dataset's own train / validation / test splits: models are fitted on train, the alert
-threshold is chosen on validation, and every number reported comes from the untouched test split.
-
-Feature sets (all from signals this hardware can produce):
-  accel            30 accelerometer features                       (today's firmware)
-  accel+gyro       37 = accel + gyroscope                          (MPU6050, no extra parts)
-  accel+gyro+gps   40 = accel + gyro + GPS speed change            (needs the NEO-6M wired up)
-  doc-200ms         8 features over a 200 ms window                (Assessment-6 document, Section 1.1)
-
-Two views of the same result:
-  per window  every triggered 2.5 s window the device would classify
-  per EVENT   the deployment question: during this 16 s event, did the device raise an alert?
-              Crash events that never cross the 0.45 g trigger count as misses.
-
-Outputs ml/results/vzcrash_comparison.csv and ml/results/metrics_vzcrash.json.
+Fit on train, pick the alert threshold on validation, report on test.
 """
 import json
 import time
@@ -204,13 +190,11 @@ def main():
     RES.mkdir(exist_ok=True)
     df.to_csv(RES / "vzcrash_comparison.csv", index=False)
 
-    # Selected model: best event-level AP among ESP32-deployable models that need no extra hardware.
     cand = df[df.deployable_on_esp32 & (df.features != "accel+gyro+gps") & ~df.model.str.startswith("V1")]
     best_name = cand.sort_values("event_pr_auc", ascending=False).iloc[0].model
     best_model, p_te, s_te, t_te = keep[best_name]
     print("\nSELECTED:", best_name)
 
-    # Where does it stand on severity, vehicle size and gyro resolution?
     crash_win = te["label"] == CRASH_LABEL
     peak = te["X"][:, 0]
     by_severity = {}

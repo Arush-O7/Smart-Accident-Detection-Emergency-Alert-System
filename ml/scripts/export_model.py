@@ -1,10 +1,4 @@
-"""Export both on-device models for the ESP32 (C headers) and the web dashboard (demo/data/model.js).
-
-  model A  crash detector      LightGBM on 37 accel+gyro features, trained on VZCrash (real crashes)
-  model B  road-event namer    XGBoost on the 30 accelerometer features, trained on PVS road data
-
-Writes transmitter_LORA/ml_crash_detector/crash_model.h, .../road_model.h and demo/data/model.js.
-"""
+"""Export both models as C headers for the ESP32 and as demo/data/model.js."""
 import json
 from pathlib import Path
 

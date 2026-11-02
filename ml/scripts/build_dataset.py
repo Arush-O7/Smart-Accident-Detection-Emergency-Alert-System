@@ -1,24 +1,4 @@
-"""Turn the raw downloads into triggered 2.5 s event windows, as the ESP32 would see them.
-
-Every stream is converted to g at 100 Hz, passed through an MPU6050 model (+-16 g, 2048 LSB/g)
-and cut into windows by the same trigger logic the firmware runs.
-
-Classes
-  NORMAL              jolts on good/regular asphalt, non-aggressive manoeuvres        (PVS, DriverBehavior)
-                      (PVS windows come from the dashboard MPU; the body MPU adds training-only views)
-  SPEED_BUMP          labelled speed bumps                                             (PVS)
-  POTHOLE_ROUGH_ROAD  jolts on labelled bad / unpaved / cobblestone roads              (PVS)
-  HARSH_MANEUVER      aggressive braking, acceleration, turns, lane changes            (DriverBehavior)
-  CRASH               real NHTSA crash-test pulses measured on the vehicle body, placed into
-                      real PVS driving so the pre-crash and post-crash context is real sensor data;
-                      speed-scaled copies (training + stress test only) cover minor collisions
-
-Folds (leakage control): fold k holds PVS vehicle k (drives 1-3, 4-6, 7-9), one DriverBehavior trip
-group and a third of the NHTSA tests. Crash windows in fold k only use fold-k driving as background,
-so no sensor stream is shared across folds.
-
-External test (never trained on): iPhone drives with human-labelled potholes (Austin, TX).
-"""
+"""Build triggered 2.5 s windows from PVS, DriverBehavior and NHTSA data."""
 import json
 import zlib
 from pathlib import Path
@@ -47,7 +27,6 @@ class Store:
                               desc=desc, is_aug=is_aug, **extra))
 
 
-# ------------------------------------------------------------------------------------ PVS
 def load_pvs():
     drives = {}
     for n in range(1, 10):
@@ -61,8 +40,7 @@ def load_pvs():
 
 
 def pvs_events(store, drives):
-    # The dashboard sensor is the evaluated view. The second MPU bolted to the body above the
-    # suspension saw the same drive; its windows are extra training data (sensor placement variety).
+    # dashboard sensor is used for scoring, body sensor only adds training data
     for n, d in drives.items():
         for view, is_aug in (("acc", 0), ("body", 1)):
             pvs_view_events(store, n, d, d[view], is_aug, "dashboard" if is_aug == 0 else "body")
@@ -85,7 +63,7 @@ def pvs_view_events(store, n, d, acc, is_aug, where):
             label = "NORMAL"
         store.add(w, label, d["fold"], "PVS", f"pvs{n}", f"PVS drive {n} ({where}) @ {a / FS:.1f}s, "
                   f"{d['speed'][a] * 3.6:.0f} km/h", is_aug=is_aug, t=a / FS)
-    # Some gentle bumps stay under the trigger; still teach the model what they look like.
+    # include bumps that don't cross the trigger too
     edges = np.flatnonzero(np.diff(bump.astype(np.int8)))
     for s, e in zip(edges[::2] + 1, edges[1::2] + 1):
         if taken[s:e].any():
@@ -97,7 +75,6 @@ def pvs_view_events(store, n, d, acc, is_aug, where):
                       f"PVS drive {n} ({where}) @ {a / FS:.1f}s (below trigger)", is_aug=is_aug, t=a / FS)
 
 
-# -------------------------------------------------------------------------- DriverBehavior
 HARSH = {"freada_agressiva": "aggressive braking", "aceleracao_agressiva": "aggressive acceleration",
          "curva_direita_agressiva": "aggressive right turn", "curva_esquerda_agressiva": "aggressive left turn",
          "troca_faixa_direita_agressiva": "aggressive lane change", "troca_faixa_esquerda_agressiva": "aggressive lane change"}
@@ -135,7 +112,6 @@ def driver_behavior_events(store, trips):
                               f"Trip {trip}: {kind} @ {ev.inicio:.0f}s", is_aug=int(k > 0))
 
 
-# ---------------------------------------------------------------------------------- NHTSA
 def load_pulse(folder, pulse, meta):
     """Return the body acceleration pulse (SAE frame: X fwd, Y right, Z down, g) at 100 Hz from t=0."""
     axes = {}
@@ -255,10 +231,7 @@ def nhtsa_events(store, pools):
             n_tests += 1
             desc = (f"NHTSA test {meta['testNo']}: {meta['vehicle'].title()}, {kind}, "
                     f"{meta['closingSpeed']:.0f} km/h")
-            # copy 0 = the real pulse (evaluated as-is). Other copies are scaled: in a linear-spring
-            # crash model peak deceleration grows with impact speed while pulse duration stays put,
-            # so scale s approximates the same vehicle hitting at s x the test speed. Two copies are
-            # minor collisions down to 8 km/h equivalent.
+            # copy 0 is the real pulse, the rest are scaled down to simulate slower impacts
             lo = min(0.5, max(0.08, 8.0 / meta["closingSpeed"]))
             plan = [1.0, float(rng.uniform(0.6, 1.0)), float(rng.uniform(lo, 0.5)), float(rng.uniform(lo, 0.5))]
             for k, scale in enumerate(plan):
@@ -272,7 +245,6 @@ def nhtsa_events(store, pools):
     return n_tests
 
 
-# ----------------------------------------------------------------------- external potholes
 def pothole_external():
     """iPhone data has gravity removed; restore 1 g along the dominant vibration (vertical) axis.
 

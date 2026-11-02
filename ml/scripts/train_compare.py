@@ -1,12 +1,4 @@
-"""Compare crash / road-anomaly classifiers with leave-one-vehicle-out cross-validation.
-
-Every model is trained on two folds and scored on the third (a vehicle, driver and set of crash
-tests it has never seen), so every number reported is out-of-fold. Augmented copies (jittered
-windows, amplitude-scaled crash pulses) are used for training only; scores use real events.
-
-Outputs: ml/results/model_comparison.csv, ml/results/metrics.json, ml/results/oof_best.npy,
-         ml/models/*.joblib (best_model.joblib = selected model), ml/data/processed/features_*.npy
-"""
+"""Old NHTSA-based crash model, compared with leave-one-vehicle-out CV."""
 import inspect
 import json
 import time
@@ -256,9 +248,7 @@ def main():
     RES.mkdir(exist_ok=True)
     df.to_csv(RES / "model_comparison.csv", index=False)
 
-    # Selection rule: crash F1 saturates (models differ by 1-3 of ~890 crashes), so among models that
-    # can run on the ESP32 and are within 0.005 crash F1 of the best, take the one that best separates
-    # bumps / potholes / manoeuvres (macro F1), then the lowest false-positive rate.
+    # crash F1 is nearly tied, so pick by macro F1 then FPR among ESP32-sized models
     cand = df[df.deployable_on_esp32 & ~df.model.str.startswith("V1")].copy()
     cand = cand[cand.crash_f1 >= cand.crash_f1.max() - 0.005].sort_values(
         ["macro_f1_5class", "false_positive_rate", "model_size_kb"], ascending=[False, True, True])

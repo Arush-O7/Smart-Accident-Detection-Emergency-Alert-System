@@ -140,39 +140,39 @@
 
     <section id="summary">
       <h2><span class="secnum">1</span>What is new, in one page</h2>
-      <p class="lead">A threshold detector answers one question — was the jolt big? This system answers the question
+      <p class="lead">A threshold detector answers one question, was the jolt big? This system answers the question
         that actually matters on an Indian road: <b>was it a crash, or a speed breaker, a pothole, or hard braking?</b>
         Two gradient-boosted tree models run inside the ESP32. Model&nbsp;A decides crash or not, from 30 accelerometer
         and 7 gyroscope features over a 2.5&nbsp;s window. Model&nbsp;B names everything else. Only a crash raises an
         SMS.</p>
       <div class="stats" id="headline"></div>
-      <p>Every number in this dossier is measured on the <b>held-out test split of VZCrash</b> — 24,174 events,
+      <p>Every number in this dossier is measured on the <b>held-out test split of VZCrash</b>, 24,174 events,
         4,221 of them real crashes reviewed by three trained annotators against dashcam footage, none of which the
         model saw during training.</p>
       <figure>
         <svg class="chart" id="fig-bench" role="img" aria-label="Average precision of this system against baselines and published models"></svg>
         <figcaption><b>Figure 1.</b> Where the system sits. It lands between the VZCrash paper's own physics baseline
-          and its 1.7-million-parameter neural network — while running in 339 KB of flash on a microcontroller.</figcaption>
+          and its 1.7-million-parameter neural network, while running in 339 KB of flash on a microcontroller.</figcaption>
       </figure>
     </section>
 
     <section id="problem">
       <h2><span class="secnum">2</span>The problem with the rule it replaces</h2>
       <p>Low-cost accident detectors, including the first version of this project, declare a crash when acceleration
-        crosses a fixed threshold — here <code>|a| &gt; 2.2 g</code>. Four measured objections:</p>
+        crosses a fixed threshold, here <code>|a| &gt; 2.2 g</code>. Four measured objections:</p>
       <ol>
         <li><b>Ordinary bad roads cross the threshold.</b> In the PVS drives, a dashboard accelerometer reaches
           <b>2.5–3.5 g</b> on rough and cobblestone stretches. The rule fires on <b>6.3 %</b> of rough-road jolts.</li>
         <li><b>On real crash data it ranks poorly.</b> Average precision <b>0.703</b>, false-alarm rate <b>6.98 %</b>.</li>
         <li><b>It cannot explain itself.</b> One bit of output: no way to tell a driver, a fleet or a road authority
           that the jolt was a speed breaker.</li>
-        <li><b>The original parameters were mutually inconsistent</b> — 3.3 Hz sampling cannot resolve a 50–200 ms
+        <li><b>The original parameters were mutually inconsistent</b>, 3.3 Hz sampling cannot resolve a 50–200 ms
           crash pulse, and a ±2 g range cannot represent a 2.2 g threshold. Both are fixed here (100 Hz, ±16 g), but
           fixing them does not address objections 1–3.</li>
       </ol>
       <p>The nearest prior design inside this project is the Assessment-6 V2 specification: a 200 ms window, an
         8-element feature vector, logistic regression. Implemented exactly as written and trained on the same data it
-        scores <b>0.902 AP</b> — a real improvement on the threshold, and 0.062 AP below what is proposed here.
+        scores <b>0.902 AP</b>, a real improvement on the threshold, and 0.062 AP below what is proposed here.
         §7 shows the limiting factor is the 200 ms window, not the classifier.</p>
     </section>
 
@@ -203,7 +203,7 @@
       <figure>
         <svg class="chart" id="fig-importance" role="img" aria-label="Feature importance of the crash model"></svg>
         <figcaption><b>Figure 3.</b> What the crash model actually uses (gain share, top 14 of 37). The peak
-          <b>yaw rate about gravity</b> is the single most informative feature — a collision spins the vehicle, a
+          <b>yaw rate about gravity</b> is the single most informative feature, a collision spins the vehicle, a
           pothole does not. No feature dominates, which is the point: this is not a threshold in disguise.</figcaption>
       </figure>
     </section>
@@ -213,8 +213,8 @@
       <div class="table-wrap"><table id="tbl-algos"></table></div>
       <p><b>Protocol.</b> VZCrash's official splits are used unchanged: fit on train (137,954 events → 160,097
         triggered windows), choose thresholds on validation (27,175 events), report on test (24,174 events). Class
-        weights balanced. Metrics are reported <b>per event</b> — did the device raise an alert during this 16 s event?
-        — with crash events that never cross the trigger counted as misses.</p>
+        weights balanced. Metrics are reported <b>per event</b>, did the device raise an alert during this 16 s event?
+       with crash events that never cross the trigger counted as misses.</p>
     </section>
 
     <section id="results">
@@ -242,7 +242,7 @@
       <figure>
         <svg class="chart" id="fig-scatter" role="img" aria-label="Recall against false alarm rate"></svg>
         <figcaption><b>Figure 7.</b> The trade-off every model makes at the same threshold. Up and to the left is
-          better. The decision tree catches the most crashes and is unusable — it also alarms on 7.6 % of non-crash
+          better. The decision tree catches the most crashes and is unusable, it also alarms on 7.6 % of non-crash
           events. The selected model sits at the knee.</figcaption>
       </figure>
 
@@ -253,7 +253,7 @@
       <div class="cols">
         <figure>
           <svg class="chart" id="fig-sensors" role="img" aria-label="Sensor ablation"></svg>
-          <figcaption><b>Figure 8.</b> Same algorithm, same windows — only the inputs change. The gyroscope is already
+          <figcaption><b>Figure 8.</b> Same algorithm, same windows, only the inputs change. The gyroscope is already
             on the board and costs nothing; GPS speed is the recommended upgrade.</figcaption>
         </figure>
         <figure>
@@ -268,7 +268,7 @@
         <figure>
           <svg class="chart" id="fig-severity" role="img" aria-label="Detection rate by impact severity"></svg>
           <figcaption><b>Figure 10.</b> Detection at P ≥ 0.80 by how hard the impact was. Below 1.5 g a real crash and
-            a hard pothole are close to indistinguishable from inertial data alone — the 0.50–0.80 countdown band
+            a hard pothole are close to indistinguishable from inertial data alone, the 0.50–0.80 countdown band
             exists for exactly this case.</figcaption>
         </figure>
         <figure>
@@ -278,7 +278,7 @@
         </figure>
       </div>
 
-      <h3>7.4 Model B — naming the jolt</h3>
+      <h3>7.4 Model B, naming the jolt</h3>
       <div class="cols">
         <div class="table-wrap"><table class="cm" id="tbl-cm"></table></div>
         <figure>
@@ -292,7 +292,7 @@
     <section id="embedded">
       <h2><span class="secnum">8</span>It runs on the device, and it is provably the same maths</h2>
       <div class="stats" id="fw-stats"></div>
-      <p>The same computation is implemented three times — Python for training, C for the firmware, JavaScript for the
+      <p>The same computation is implemented three times, Python for training, C for the firmware, JavaScript for the
         dashboard. A verification harness compiles the firmware headers on the host and compares them against Python on
         1,987 real windows:</p>
       <pre id="parity"></pre>
@@ -304,7 +304,7 @@
       <h2><span class="secnum">9</span>Against the published state of the art</h2>
       <div class="table-wrap"><table id="tbl-published"></table></div>
       <div class="note"><b>Caveat, stated plainly.</b> The published figures are computed over every event in the
-        dataset, while this system only sees events crossing its 0.45 g trigger — untriggered crashes are counted as
+        dataset, while this system only sees events crossing its 0.45 g trigger, untriggered crashes are counted as
         misses here, but the candidate set differs, so the comparison is indicative rather than strictly like-for-like.
         The defensible claim is that a microcontroller-sized model lands between the paper's physics baseline and its
         deep networks.</div>
@@ -314,7 +314,7 @@
       <h2><span class="secnum">10</span>Limitations</h2>
       <ol>
         <li><b>Gentle crashes.</b> Below 1.5 g only 21.2 % are detected. The countdown band is a mitigation, not a fix.</li>
-        <li><b>The negatives are hard by construction.</b> VZCrash's non-crash events were selected as interesting —
+        <li><b>The negatives are hard by construction.</b> VZCrash's non-crash events were selected as interesting -
           near misses, potholes, off-road manoeuvres. 2.43 % of <i>those</i> is not 2.43 % of driving time: over 200 s
           of ordinary recorded driving (119 classified jolts) the system raised no crash alert at all.</li>
         <li><b>Model B does not transfer across sensors.</b> On unseen iPhone drives it recognised only 1 of 12
@@ -359,11 +359,11 @@
       <div class="table-wrap"><table id="tbl-repro"></table></div>
       <p class="small muted">Seeds are fixed (42). LightGBM training is not bit-reproducible across runs because of
         multithreaded histogram ties, so the invariant enforced is that the exported firmware header matches the saved
-        model — which <code>verify_firmware.py</code> checks on every export.</p>
+        model, which <code>verify_firmware.py</code> checks on every export.</p>
     </section>
 
     <footer>
-      Prepared from the measured results of this project. Underlying tables: <code>ml/results/</code> —
+      Prepared from the measured results of this project. Underlying tables: <code>ml/results/</code> -
       <code>vzcrash_comparison.csv</code>, <code>metrics_vzcrash.json</code>, <code>road_model.json</code>,
       <code>pr_curves.json</code>, <code>firmware_parity.txt</code>. Text version: <code>ml/results/NOVELTY.md</code>.
     </footer>
@@ -503,12 +503,12 @@ const CLAIMS = [
    "The natural design is one multi-class model. Splitting means the safety-critical decision is trained only on <b>real crash data</b>, the road vocabulary can be retrained from cheap drives without touching the crash detector, and a weak road label cannot degrade crash recall.",
    "Model A: <b>0.964 AP</b> on real crashes. Model B: <b>macro F1 0.782</b> on road events. The extra inference costs microseconds."],
   ["N3", "Triggered window with re-anchoring",
-   "A 0.45 g gravity-referenced trigger opens a 2.5 s window — 1.0 s before the trigger from a ring buffer, 1.5 s after. If a substantially stronger jolt arrives while the window fills (<span class='mono'>dyn &gt; max(1 g, 1.5 × peak)</span>), the window <b>re-anchors</b> on it.",
+   "A 0.45 g gravity-referenced trigger opens a 2.5 s window, 1.0 s before the trigger from a ring buffer, 1.5 s after. If a substantially stronger jolt arrives while the window fills (<span class='mono'>dyn &gt; max(1 g, 1.5 × peak)</span>), the window <b>re-anchors</b> on it.",
    "A plain triggered-window detector is blind for the duration of its own collection window: a pothole immediately followed by a collision would be classified as a pothole and the crash never examined. Re-anchoring closes that hole without a second buffer or a second pass.",
    "Implemented identically in Python, C and JavaScript, and verified to produce the same event anchors in all three."],
   ["N4", "Confidence-banded, driver-in-the-loop verification",
    "The calibrated probability drives a three-way decision: <b>P ≥ 0.80</b> alerts immediately; <b>0.50–0.80</b> starts a 10 s buzzer countdown the driver can cancel; below 0.50 the event is logged and named.",
-   "It spends human attention only on genuinely ambiguous events, and gives the system a safe behaviour exactly where the data says it is weakest — gentle impacts. A cancelled countdown is also a labelled false positive: the cheapest possible on-vehicle training data.",
+   "It spends human attention only on genuinely ambiguous events, and gives the system a safe behaviour exactly where the data says it is weakest, gentle impacts. A cancelled countdown is also a labelled false positive: the cheapest possible on-vehicle training data.",
    "At P ≥ 0.80: <b>2.43 %</b> false alarms. A validation-tuned threshold reaches <b>0.59 %</b> when a fleet wants it quieter."],
   ["N5", "Gyroscope-augmented discrimination on a commodity IMU",
    "Seven rotational features in the same gravity frame: peak rate, <b>yaw about gravity</b> separated from <b>tilt across it</b>, rotation integrated through the impact, rotational energy after it.",
@@ -516,7 +516,7 @@ const CLAIMS = [
    "<b>w_yaw_peak is the single most important feature of 37.</b> Adding the gyroscope lifts AP 0.9559 → 0.9622 and cuts false alarms 2.94 % → 2.63 %, on identical windows with the same algorithm, at zero hardware cost."],
   ["N6", "Deterministic tree deployment with verified parity",
    "Both ensembles are flattened into pre-order C arrays (feature index, threshold, right-child index). Thresholds are converted to float32 with the rounding direction chosen so the on-device comparison reproduces the training library's branch exactly.",
-   "The usual embedded-ML route is a neural network plus an interpreter (TFLite Micro), which brings a runtime, a memory arena and quantisation error. Trees as pure data arrays need no runtime and are bitwise-inspectable — but only if float32 comparison semantics are handled, which is the contribution.",
+   "The usual embedded-ML route is a neural network plus an interpreter (TFLite Micro), which brings a runtime, a memory arena and quantisation error. Trees as pure data arrays need no runtime and are bitwise-inspectable, but only if float32 comparison semantics are handled, which is the contribution.",
    "On 1,987 real windows: features to <b>1.5×10⁻⁴</b>, probability to <b>6.7×10⁻⁷</b>, and the <b>alert decision identical on 100 %</b>. 48,884 nodes in 339 KB, 24 µs per decision."],
   ["N7", "Speed-scaled crash-pulse augmentation (method)",
    "Real crash-test pulses are scaled in amplitude to synthesise lower-speed impacts: under a linear-spring crash model peak deceleration grows with impact speed while pulse duration stays roughly constant, so scaling by <i>s</i> approximates the same structure struck at <i>s</i> × the test speed, down to 8 km/h.",
@@ -589,7 +589,7 @@ table("tbl-cm", ["truth \\ predicted", ...RC.map((c) => NICE[c])],
   }), { textCols: [0] });
 
 table("tbl-published", ["System", "Parameters", "Average precision", "Runs on"], [
-  ["VZCrash physics baseline", "—", D.vz.paper_baselines.physical_baseline.toFixed(3), "—"],
+  ["VZCrash physics baseline", "-", D.vz.paper_baselines.physical_baseline.toFixed(3), "-"],
   ["Chronos-Bolt", "8.8 M", D.vz.paper_baselines.chronos_bolt.toFixed(3), "GPU / server"],
   ["CNN-Transformer", "1.3 M", D.vz.paper_baselines.cnn_transformer.toFixed(3), "GPU / server"],
   ["CNN-RNN", "1.7 M", D.vz.paper_baselines.cnn_rnn.toFixed(3), "GPU / server"],
@@ -597,19 +597,19 @@ table("tbl-published", ["System", "Parameters", "Average precision", "Runs on"],
 ].map((r, i) => ({ hi: i === 4, cells: [{ v: r[0], style: "text-align:left;font-family:var(--display)" }, r[1], r[2], { v: r[3], style: "text-align:right;font-family:var(--mono)" }] })), { textCols: [0] });
 
 table("tbl-data", ["Dataset", "Used for", "Licence"], [
-  ["VZCrash — Bianconcini et al., IEEE ITSC 2026", "Model A training, all crash metrics", "CC BY-NC 4.0 (non-commercial)"],
-  ["PVS — Menegazzo & von Wangenheim, UFSC", "Model B: speed bumps, rough roads", "CC BY-NC-ND 4.0"],
-  ["Driver Behavior Dataset — Ferreira et al. 2017", "Model B: harsh manoeuvres", "no licence stated"],
+  ["VZCrash, Bianconcini et al., IEEE ITSC 2026", "Model A training, all crash metrics", "CC BY-NC 4.0 (non-commercial)"],
+  ["PVS, Menegazzo & von Wangenheim, UFSC", "Model B: speed bumps, rough roads", "CC BY-NC-ND 4.0"],
+  ["Driver Behavior Dataset, Ferreira et al. 2017", "Model B: harsh manoeuvres", "no licence stated"],
   ["NHTSA Vehicle Crash Test Database", "first-generation model; method N7", "US Government, public domain"],
-  ["Real-World Pothole Drives — W. Stading", "external transfer test only", "CC BY-NC 4.0"],
+  ["Real-World Pothole Drives, W. Stading", "external transfer test only", "CC BY-NC 4.0"],
 ].map((r) => ({ cells: r.map((v) => ({ v, style: "text-align:left;white-space:normal;font-family:var(--serif)" })) })), { textCols: [0, 1, 2] });
 
 table("tbl-repro", ["Step", "Command"], [
   ["Crash data (gated, free account)", "ml/scripts/download_vzcrash.py"],
   ["Road data", "ml/scripts/download_data.py"],
   ["Windows and features", "build_vzcrash.py · build_dataset.py"],
-  ["Model A — 12 models on official splits", "train_vzcrash.py"],
-  ["Model B — leave-one-vehicle-out", "train_road_model.py"],
+  ["Model A, 12 models on official splits", "train_vzcrash.py"],
+  ["Model B, leave-one-vehicle-out", "train_road_model.py"],
   ["Precision–recall curves", "pr_curves.py"],
   ["Export to firmware and app", "export_model.py · export_streamlit.py"],
   ["Verify C equals Python", "verify_firmware.py"],
@@ -633,7 +633,7 @@ function drawAll() {
     { label: "VZCrash paper: physics baseline", value: D.vz.paper_baselines.physical_baseline },
     { label: "This system (37 features, on-device)", value: best.event_pr_auc, highlight: true },
     { label: "VZCrash paper: CNN-RNN (1.7 M params)", value: D.vz.paper_baselines.cnn_rnn },
-  ].map((r) => ({ ...r, note: r.value.toFixed(3) })), { max: 1, fmt: (v) => v.toFixed(2), labelW: 268, title: "Average precision per event — higher is better" });
+  ].map((r) => ({ ...r, note: r.value.toFixed(3) })), { max: 1, fmt: (v) => v.toFixed(2), labelW: 268, title: "Average precision per event, higher is better" });
 
   hbars(document.getElementById("fig-importance"),
     Object.entries(D.importance).map(([k, v], i) => ({ label: k, value: v, highlight: i === 0,
@@ -652,13 +652,13 @@ function drawAll() {
     .map(([k, v]) => ({ x: v.operating_point.recall, y: v.operating_point.precision, color: prColors[k] }));
   const v1p = D.pr.curves["V1 rule: |a| > 2.2 g (current firmware)"].operating_point;
   pts.push({ x: v1p.recall, y: v1p.precision, color: CR, label: "V1 rule", anchor: "end" });
-  lines(document.getElementById("fig-pr"), series, { xlabel: "recall — share of real crashes detected", ylabel: "precision", points: pts });
+  lines(document.getElementById("fig-pr"), series, { xlabel: "recall, share of real crashes detected", ylabel: "precision", points: pts });
   document.getElementById("pr-legend").innerHTML = [
     ["Proposed: LightGBM, 37 features (AP 0.964)", S1],
     ["With GPS speed, 40 features (AP 0.968)", S3],
     ["Accelerometer only, 30 features (AP 0.956)", S4],
     ["Assessment-6 V2: 200 ms, 8 features (AP 0.902)", S2],
-    ["V1 rule |a| > 2.2 g — a single point (AP 0.703)", CR],
+    ["V1 rule |a| > 2.2 g, a single point (AP 0.703)", CR],
   ].map(([t, c]) => `<span><i style="background:${c}"></i>${t}</span>`).join("");
 
   const ordered = [...cmp].sort((a, b) => b.event_pr_auc - a.event_pr_auc);
@@ -675,15 +675,15 @@ function drawAll() {
   scatter(document.getElementById("fig-scatter"), cmp.map((r) => ({
     x: r.event_fpr_at_p80, y: r.event_recall_at_p80, highlight: r.model === D.vz.selected,
     label: ["V1 rule |a| > 2.2 g (current firmware)", "Decision Tree", "LightGBM", "Document V2: 200 ms + 8 features + logistic", "XGBoost (accel + gyro + GPS)"].includes(r.model) ? shortName(r.model) : "",
-  })), { xlabel: "false-alarm rate at P ≥ 0.80 — lower is better", ylabel: "crashes detected", xmax: 0.08, ymin: 0.8 });
+  })), { xlabel: "false-alarm rate at P ≥ 0.80, lower is better", ylabel: "crashes detected", xmax: 0.08, ymin: 0.8 });
 
   const sens = [
     ["Accelerometer only (30)", by("XGBoost (accelerometer only)").event_pr_auc, false],
-    ["+ gyroscope — shipped (37)", by("XGBoost (accel + gyro)").event_pr_auc, true],
+    ["+ gyroscope, shipped (37)", by("XGBoost (accel + gyro)").event_pr_auc, true],
     ["+ GPS speed (40)", by("XGBoost (accel + gyro + GPS)").event_pr_auc, false],
   ];
   hbars(document.getElementById("fig-sensors"), sens.map(([label, value, hl]) => ({ label, value, highlight: hl, note: value.toFixed(4) })),
-    { max: 1, fmt: (v) => v.toFixed(2), labelW: 208, title: "Average precision — same algorithm, same windows" });
+    { max: 1, fmt: (v) => v.toFixed(2), labelW: 208, title: "Average precision, same algorithm, same windows" });
 
   const win = [
     ["200 ms, 8 feat., logistic", docV2.event_pr_auc, false],

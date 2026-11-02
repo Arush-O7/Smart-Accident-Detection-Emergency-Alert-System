@@ -1,11 +1,4 @@
-"""Crash AI engine for the Streamlit app.
-
-Runs the exact models the ESP32 runs: the same trigger, the same features, and the same flattened
-trees exported by ml/scripts/export_model.py. Needs numpy only, so the hosted app stays small.
-
-  model A  crash detector      LightGBM, 37 accel+gyro features, sigmoid(sum of leaves)
-  model B  road-event namer    XGBoost, 30 accelerometer features, softmax over 4 classes
-"""
+"""Python port of the firmware detector, used by the Streamlit app (numpy only)."""
 import json
 import sys
 from pathlib import Path

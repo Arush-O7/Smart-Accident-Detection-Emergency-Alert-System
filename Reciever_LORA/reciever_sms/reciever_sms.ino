@@ -9,17 +9,16 @@
 #define RST 14
 #define DIO0 26
 
-// 🔹 WiFi — fill in before flashing (never commit real credentials)
+// 🔹 WiFi
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
-// 🔹 SMS API (CircuitDigest Cloud) — fill in before flashing
+// 🔹 SMS API (CircuitDigest Cloud)
 const char* apiKey = "YOUR_CIRCUITDIGEST_API_KEY";
 const char* mobileNumber = "91XXXXXXXXXX";   // country code + number, no "+"
 
 bool alertSent = false;
 
-// ─────────────────────────────────────────
 void connectWiFi() {
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
@@ -59,7 +58,6 @@ void connectWiFi() {
   Serial.println(" dBm");
 }
 
-// ─────────────────────────────────────────
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -79,10 +77,9 @@ void setup() {
   }
 
   Serial.println("LoRa Ready 📡");
-  Serial.println("System Ready — Waiting for packets...");
+  Serial.println("System Ready - Waiting for packets...");
 }
 
-// ─────────────────────────────────────────
 void loop() {
   // 🔄 Auto-reconnect WiFi if dropped
   if (WiFi.status() != WL_CONNECTED) {
@@ -124,12 +121,11 @@ void loop() {
     // 🔁 Reset alert after CLEAR message from sender
     if (msg.startsWith("CLEAR")) {
       alertSent = false;
-      Serial.println("✅ Alert Reset — Ready for next event");
+      Serial.println("✅ Alert Reset - Ready for next event");
     }
   }
 }
 
-// ─────────────────────────────────────────
 String field(const String &csv, int index) {
   int start = 0;
   for (int i = 0; i < index; i++) {
@@ -154,10 +150,9 @@ String describeAlert(const String &msg) {
   return "AI verified " + type + " (" + confidence + "% confidence), impact " + value + "g";
 }
 
-// ─────────────────────────────────────────
 void sendSMS(String details) {
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected ❌ — Attempting reconnect...");
+    Serial.println("WiFi not connected ❌ - Attempting reconnect...");
     connectWiFi();
   }
 
@@ -193,11 +188,11 @@ void sendSMS(String details) {
       Serial.println("✅ SMS Sent Successfully!");
       Serial.println("Response: " + http.getString());
     } else if (httpResponseCode == -1) {
-      Serial.println("❌ Connection Failed — Check internet on hotspot");
+      Serial.println("❌ Connection Failed - Check internet on hotspot");
     } else if (httpResponseCode == 401) {
-      Serial.println("❌ Unauthorized — Check API Key");
+      Serial.println("❌ Unauthorized - Check API Key");
     } else if (httpResponseCode == 400) {
-      Serial.println("❌ Bad Request — Check payload format");
+      Serial.println("❌ Bad Request - Check payload format");
     } else {
       Serial.println("❌ SMS Failed");
       Serial.println("Response: " + http.getString());
@@ -206,6 +201,6 @@ void sendSMS(String details) {
     http.end();
 
   } else {
-    Serial.println("❌ Could not reconnect to WiFi — SMS not sent");
+    Serial.println("❌ Could not reconnect to WiFi - SMS not sent");
   }
 }

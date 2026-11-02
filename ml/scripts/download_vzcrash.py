@@ -1,24 +1,10 @@
-"""Download VZCrash (real ego-vehicle crashes, 100 Hz IMU) from HuggingFace.
+"""Download VZCrash from HuggingFace.
 
-VZCrash is the dataset named in ml/results/REPORT.md as the next validation step: ~190,000 events,
-31,090 of them verified real crashes, plus near-misses and kinematic distractors (potholes,
-off-road manoeuvres). Unlike our NHTSA-based crash windows, these are recordings of real crashes
-as they happened on the road.
-
-It is gated and non-commercial (CC BY-NC 4.0), so you need a free account:
-
-  1. Create a HuggingFace account:  https://huggingface.co/join
-  2. Open https://huggingface.co/datasets/vzc-research-chapter/VZCrash and accept the terms
-     (approval is automatic).
-  3. Create a READ token:           https://huggingface.co/settings/tokens
-  4. Log in once:                   hf auth login
-     (or export HF_TOKEN=hf_xxx before running this script)
-
-Then, smallest split first (~1.1 GB):
+The dataset is gated: accept the terms at
+https://huggingface.co/datasets/vzc-research-chapter/VZCrash and run `hf auth login`
+(or set HF_TOKEN) first.
 
   python ml/scripts/download_vzcrash.py --split validation --shards 1
-
-Full dataset is ~7.7 GB: --split train --split validation --split test  (no --shards limit).
 """
 import argparse
 import os

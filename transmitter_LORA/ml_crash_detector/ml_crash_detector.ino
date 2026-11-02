@@ -1,21 +1,6 @@
-// AI crash detector - transmitter node (vehicle)
-//
-// ESP32 + MPU6050 + SX1278 LoRa. Samples the IMU at 100 Hz. A cheap trigger wakes two on-device
-// models (see ml/):
-//   model A  crash detector, LightGBM trained on VZCrash - 31,000 real on-road crashes,
-//            using 30 accelerometer + 7 gyroscope features
-//   model B  road-event classifier, XGBoost trained on real road data, which names the jolts
-//            model A clears: NORMAL, SPEED_BUMP, POTHOLE_ROUGH_ROAD or HARSH_MANEUVER
-// Only crashes raise an alert; everything else is logged.
-//
-//   P(crash) >= 0.80        -> ALERT sent immediately over LoRa
-//   0.50 <= P(crash) < 0.80 -> 10 s buzzer countdown, driver can cancel with the button
-//   otherwise               -> event logged (and optionally reported as EVENT over LoRa)
-//
-// An independent physics guard raises ROLLOVER when the vehicle stays tilted past 60 degrees.
-//
-// Libraries: "MPU6050" (Electronic Cats / i2cdevlib), "LoRa" (Sandeep Mistry).
-// Serial @115200 prints "R,ax,ay,az" at 100 Hz and "E,..." per event for the web dashboard (demo/).
+// Crash detector transmitter: ESP32 + MPU6050 + SX1278
+// P(crash) >= 0.80 sends ALERT, 0.50-0.80 starts a cancellable buzzer countdown,
+// anything lower is logged as a road event.
 #include <Wire.h>
 #include <SPI.h>
 #include <LoRa.h>
@@ -24,7 +9,6 @@
 #include "crash_model.h"
 #include "road_model.h"
 
-// ---- pins (LoRa + I2C unchanged from the original transmitter)
 #define LORA_SS 5
 #define LORA_RST 14
 #define LORA_DIO0 26
@@ -33,7 +17,6 @@
 #define BUZZER_PIN 4
 #define CANCEL_BUTTON_PIN 13   // to GND, internal pull-up
 
-// ---- behaviour (TRIGGER_G / EMA_ALPHA must match ml/src/signal_config.py)
 #define TRIGGER_G 0.45f
 #define EMA_ALPHA 0.02f
 #define P_ALERT_NOW 0.80f
@@ -46,7 +29,7 @@
 #define REPORT_ROAD_EVENTS true    // send EVENT packets for non-crash classifications
 #define EVENT_REPORT_MIN_MS 5000
 
-// Electronic Cats' MPU6050 library calls the ~44 Hz filter BW_42; the i2cdevlib original calls it BW_44.
+// Electronic Cats lib names it BW_42, i2cdevlib uses BW_44
 #ifdef MPU6050_DLPF_BW_42
 #define DLPF_44HZ MPU6050_DLPF_BW_42
 #else
@@ -77,7 +60,6 @@ unsigned long verifyStartMs = 0, alertMs = 0, tiltSinceMs = 0, lastEventReportMs
 int zeroReads = 0;
 float pendingP = 0, pendingPeak = 0;
 
-// -------------------------------------------------------------------------------- helpers
 float norm3(const float v[3]) { return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]); }
 
 bool initImu() {
@@ -96,7 +78,7 @@ void sendPacket(const char *kind, const char *label, int confidence, float value
 }
 
 void sendAlert(const char *label, float p, float value) {
-  // Three copies spaced out; the receiver sends one SMS per incident (alertSent flag).
+  // send 3 times, receiver only sends one SMS
   for (int i = 0; i < 3; i++) {
     sendPacket("ALERT", label, (int)roundf(p * 100), value);
     delay(150 + random(150));
@@ -107,7 +89,6 @@ void sendAlert(const char *label, float p, float value) {
   state = ALERT_SENT;
 }
 
-// ------------------------------------------------------------------------ classification
 void classifyWindow() {
   int start = ringHead;  // ring is full and ringHead is the oldest sample
   for (int i = 0; i < CF_WIN; i++) {
@@ -147,7 +128,6 @@ void classifyWindow() {
   }
 }
 
-// ------------------------------------------------------------------------------ sampling
 void onSample(float a[3], float w[3]) {
   for (int k = 0; k < 3; k++) { ring[ringHead][k] = a[k]; ringGyro[ringHead][k] = w[k]; }
   ringHead = (ringHead + 1) % CF_WIN;
@@ -163,7 +143,7 @@ void onSample(float a[3], float w[3]) {
     return;
   }
 
-  // Rollover guard: sustained tilt relative to the boot orientation (independent of the model).
+  // rollover check, separate from the model
   float cosTilt = (gEma[0] * gUpright[0] + gEma[1] * gUpright[1] + gEma[2] * gUpright[2]) /
                   (norm3(gEma) * norm3(gUpright) + 1e-6f);
   float tilt = acosf(constrain(cosTilt, -1.0f, 1.0f)) * 180.0f / PI;
@@ -181,7 +161,7 @@ void onSample(float a[3], float w[3]) {
       }
       break;
     case COLLECTING:
-      // A much stronger jolt while collecting (crash right after a pothole) re-anchors the window.
+      // re-anchor if a bigger jolt comes in
       if (i - anchor > 10 && dyn > max(1.0f, 1.5f * anchorPeak)) { anchor = i; anchorPeak = dyn; }
       anchorPeak = max(anchorPeak, dyn);
       if (i == anchor + CF_N_POST - 1) classifyWindow();
@@ -207,7 +187,6 @@ void readImu() {
   onSample(a, w);
 }
 
-// ---------------------------------------------------------------------------------- main
 void setup() {
   Serial.begin(115200);
   pinMode(BUZZER_PIN, OUTPUT);

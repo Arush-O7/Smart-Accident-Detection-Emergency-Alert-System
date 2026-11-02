@@ -1,12 +1,4 @@
-"""Train the road-event classifier (model B): what kind of non-crash jolt was that?
-
-Crash detection is model A, trained on VZCrash (real crashes). This model only names the jolts that
-model A cleared: NORMAL, SPEED_BUMP, POTHOLE_ROUGH_ROAD or HARSH_MANEUVER. It uses the 30
-accelerometer features and the PVS / Driver Behavior data built by build_dataset.py, scored with
-leave-one-vehicle-out cross-validation.
-
-Outputs ml/models/road_model.joblib and ml/results/road_model.json.
-"""
+"""Train model B, the road event classifier (bump / pothole / harsh / normal)."""
 import json
 from pathlib import Path
 

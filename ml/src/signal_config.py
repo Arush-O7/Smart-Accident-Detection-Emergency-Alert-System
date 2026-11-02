@@ -1,7 +1,4 @@
-"""Constants shared by the Python pipeline, the firmware header generator and the web demo.
-
-Everything here is mirrored 1:1 in firmware (crash_features.h) - change both or neither.
-"""
+"""Constants shared with the firmware. Change crash_features.h too if you edit these."""
 FS = 100                 # Hz, MPU6050 sample rate used by the firmware
 N_PRE = 100              # samples kept before the trigger (1.0 s)
 N_POST = 150             # samples collected after the trigger (1.5 s)

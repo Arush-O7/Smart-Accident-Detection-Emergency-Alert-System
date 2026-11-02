@@ -1,17 +1,4 @@
-"""Turn VZCrash events into triggered windows, exactly as the ESP32 would see them.
-
-Each VZCrash event is 16 s of 100 Hz accelerometer (g) + gyroscope (deg/s) and 1 Hz GPS speed,
-reviewed by three humans as crash / near_miss / normal_driving. We replay every event through the
-firmware trigger (0.45 g over an EMA gravity estimate) and keep one row per triggered window.
-
-Window labels
-  crash events        the window with the strongest jolt is the crash; the other windows in that
-                      event are dropped, because they may sit before or after the impact
-  near_miss / normal  every triggered window is a negative (the whole 16 s contains no crash)
-
-Outputs ml/data/processed/vzcrash_{split}.npz with the 40 features (30 accel + 7 gyro + 3 GPS
-speed), the document's 8-feature 200 ms vector for the baseline, labels and event metadata, plus a
-small sample of raw windows for the demo.
+"""Replay VZCrash events through the firmware trigger and save feature rows.
 
 Usage: python ml/scripts/build_vzcrash.py [--jobs 8]
 """

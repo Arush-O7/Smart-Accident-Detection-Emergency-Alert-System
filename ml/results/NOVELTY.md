@@ -1,6 +1,6 @@
 # Novelty and Technical Justification
 
-**LoRa-Based Autonomous Vehicular Accident Detection and Emergency Alert System — AI Crash Discrimination Layer**
+**LoRa-Based Autonomous Vehicular Accident Detection and Emergency Alert System, AI Crash Discrimination Layer**
 ESP32 + MPU6050 + SX1278 · Arush Mishra
 
 All figures in this document come from `ml/results/vzcrash_comparison.csv`, `metrics_vzcrash.json`,
@@ -39,19 +39,19 @@ decision.
 ### 2.1 What existing systems do
 
 Published low-cost accident detectors, and the first version of this project, declare a crash when
-the acceleration magnitude crosses a fixed threshold — typically 2 g to 4 g — sometimes with a
+the acceleration magnitude crosses a fixed threshold, typically 2 g to 4 g, sometimes with a
 gyroscope threshold for rollover. This is the V1 rule: `|a| > 2.2 g`.
 
 ### 2.2 Why that fails, with evidence
 
 1. **Ordinary bad roads exceed the threshold.** In the PVS drives (9 real drives, 3 vehicles), the
    dashboard accelerometer reaches **2.5–3.5 g** on rough and cobblestone stretches. The 2.2 g rule
-   fires on **6.3 %** of rough-road jolts — each one an emergency SMS.
+   fires on **6.3 %** of rough-road jolts, each one an emergency SMS.
 2. **On real crash data the rule is barely better than chance at ranking.** On VZCrash its average
    precision is **0.703** against a crash prevalence of 17.5 %, with a **6.98 %** false-alarm rate.
 3. **A threshold cannot explain itself.** It outputs one bit. It cannot tell a driver, a fleet
    operator or a road authority that the jolt was a speed breaker rather than a collision.
-4. **The sampling rate and range of the original design were inconsistent with the threshold** —
+4. **The sampling rate and range of the original design were inconsistent with the threshold** -
    3.3 Hz sampling cannot resolve a 50–200 ms crash pulse, and a ±2 g range cannot represent 2.2 g.
    Both are corrected here (100 Hz, ±16 g), but correcting them does not solve 1–3.
 
@@ -59,7 +59,7 @@ gyroscope threshold for rollover. This is the V1 rule: `|a| > 2.2 g`.
 
 The Assessment-6 document specifies a 200 ms window, an 8-element feature vector and logistic
 regression (V2). Implemented exactly as written and trained on the same data, it scores **0.902 AP**
-— a real improvement on the threshold, and still 0.062 AP below the proposed design. Section 7.5
+- a real improvement on the threshold, and still 0.062 AP below the proposed design. Section 7.5
 shows that the limitation is the 200 ms window, not the classifier.
 
 ---
@@ -69,7 +69,7 @@ shows that the limitation is the 200 ms window, not the classifier.
 Each claim below is stated as the mechanism, why it is not the obvious choice, and the measurement
 that supports it.
 
-### N1 — Gravity-referenced, orientation-invariant feature decomposition
+### N1, Gravity-referenced, orientation-invariant feature decomposition
 
 Gravity is estimated from the first 0.5 s of every window, and the acceleration is decomposed into a
 **vertical** component (along gravity) and a **horizontal** magnitude (across it). Every feature is
@@ -80,12 +80,12 @@ direction, or raw per-axis values, which depend on how the device is bolted in. 
 separates the two physical regimes that a magnitude cannot: **road anomalies excite the vertical
 axis** (suspension travel), while **collisions excite the horizontal plane** (momentum transfer).
 
-*Evidence:* the horizontal features dominate the trained model — `dv_h_kmh` (horizontal velocity
+*Evidence:* the horizontal features dominate the trained model, `dv_h_kmh` (horizontal velocity
 change) and `sustained_h` are the 2nd and 5th most important of 37 features, and `h_energy_frac`
 (the horizontal share of event energy) is a further contributor. The device may be mounted in any
 orientation without recalibration, which the per-axis approach cannot offer.
 
-### N2 — Two-stage on-device inference: detect, then explain
+### N2, Two-stage on-device inference: detect, then explain
 
 Model A (crash / not crash) runs first. Only if it clears the jolt does Model B name it as
 `SPEED_BUMP`, `POTHOLE_ROUGH_ROAD`, `HARSH_MANEUVER` or `NORMAL`. The two models are trained on
@@ -101,11 +101,11 @@ recall. The cost is one extra inference, which measures at 24 µs total on the h
 A single 5-class model trained on the earlier, assembled crash data reached only 0.815 macro F1
 while being unable to claim real-world crash validity.
 
-### N3 — Triggered window with re-anchoring
+### N3, Triggered window with re-anchoring
 
 A cheap gravity-referenced trigger (0.45 g over an exponential moving average) opens a 2.5 s window:
 1.0 s **before** the trigger from a ring buffer and 1.5 s after. If a substantially stronger jolt
-arrives while the window is still filling — `dyn > max(1.0 g, 1.5 × current peak)` — the window
+arrives while the window is still filling, `dyn > max(1.0 g, 1.5 × current peak)`, the window
 **re-anchors** on the stronger jolt.
 
 *Why it is not obvious:* a plain triggered-window detector is blind for the duration of its own
@@ -116,7 +116,7 @@ that hole without a second buffer or a second classifier pass.
 *Evidence:* the mechanism is implemented identically in the Python pipeline, the C firmware and the
 browser engine, and verified to produce identical event anchors across all three.
 
-### N4 — Confidence-banded, driver-in-the-loop verification
+### N4, Confidence-banded, driver-in-the-loop verification
 
 The classifier's probability, not a binary output, drives a three-way decision: **P ≥ 0.80** sends
 the alert immediately; **0.50 ≤ P < 0.80** starts a 10 s buzzer countdown the driver can cancel;
@@ -124,14 +124,14 @@ below 0.50 the event is logged and named by Model B.
 
 *Why it is not obvious:* it converts the calibrated output of the model into an escalation policy
 that spends human attention only on genuinely ambiguous events, and it gives the system a safe
-behaviour exactly where the data says it is weakest — gentle impacts (§8.1). A cancelled countdown
+behaviour exactly where the data says it is weakest, gentle impacts (§8.1). A cancelled countdown
 is also a labelled false positive, which is the cheapest possible source of on-vehicle training data.
 
 *Evidence:* at P ≥ 0.80 the false-alarm rate is 2.43 %; the 0.50–0.80 band contains the events where
 recall would otherwise be lost, and the tuned operating point (§7.2) trades recall for a 0.59 %
 false-alarm rate on demand.
 
-### N5 — Gyroscope-augmented crash discrimination on a commodity IMU
+### N5, Gyroscope-augmented crash discrimination on a commodity IMU
 
 Seven rotational features are computed in the same gravity frame: peak rate, **yaw rate about
 gravity** separated from **tilt rate across it**, rotation integrated through the impact, and
@@ -146,7 +146,7 @@ gain, highest of 37). Adding the gyroscope raises AP from 0.9559 to 0.9622 on id
 the same algorithm, and cuts false alarms from 2.94 % to 2.63 %. The sensor is already present; the
 gain costs nothing in hardware.
 
-### N6 — Deterministic tree-ensemble deployment with verified numerical parity
+### N6, Deterministic tree-ensemble deployment with verified numerical parity
 
 Both ensembles are flattened into pre-order C arrays (feature index, threshold, right-child index)
 and compiled into the firmware. Thresholds are converted to float32 with the rounding direction
@@ -157,14 +157,14 @@ real windows.
 *Why it is not obvious:* the usual embedded-ML route is a neural network plus an interpreter
 (TensorFlow Lite Micro), which brings a runtime, a memory arena and quantisation error. Gradient
 boosted trees deployed as pure data arrays need no runtime, are bitwise-inspectable, and take a
-single-digit microsecond budget — but only if the float32 comparison semantics are handled, which is
+single-digit microsecond budget, but only if the float32 comparison semantics are handled, which is
 the technical contribution here.
 
 *Evidence:* on 1,987 real windows, features agree to **1.5 × 10⁻⁴** relative error, crash probability
 to **6.7 × 10⁻⁷**, and the **alert decision is identical on 100 % of windows**; the road class is
 identical on 100 %. Total 339 KB of flash for 48,884 nodes, 24 µs per full decision on the host.
 
-### N7 — Speed-scaled crash-pulse augmentation for minor collisions (method)
+### N7, Speed-scaled crash-pulse augmentation for minor collisions (method)
 
 Real crash-test pulses were scaled in amplitude to synthesise lower-speed impacts. Under a
 linear-spring crash model, peak deceleration grows with impact speed while pulse duration stays
@@ -179,7 +179,7 @@ testing only, never for headline metrics.
 model is trained on real on-road crashes and does not require it, but the method remains part of the
 disclosure and is directly useful to anyone without access to a dataset such as VZCrash.
 
-### N8 — Semantic alert payload over the long-range link
+### N8, Semantic alert payload over the long-range link
 
 The LoRa frame carries `ALERT,<class>,<confidence %>,<peak g>`, and non-crash events are optionally
 reported as `EVENT,<class>,<confidence>,<peak g>`. The fog receiver puts the class and confidence
@@ -271,8 +271,8 @@ a threshold in disguise.
 
 **Protocol.** VZCrash's official splits are used unchanged: fit on train (137,954 events → 160,097
 triggered windows), choose thresholds on validation (27,175 events), report on test (24,174 events).
-Class weights are balanced. Metrics are reported **per event**, which is the deployment question —
-did the device raise an alert during this 16 s event? — with crash events that never cross the
+Class weights are balanced. Metrics are reported **per event**, which is the deployment question -
+did the device raise an alert during this 16 s event?, with crash events that never cross the
 trigger counted as misses. Window-level metrics are reported alongside for completeness.
 
 ---
@@ -302,7 +302,7 @@ LightGBM wins; XGBoost is within 0.0014 AP and would serve equally well.
 
 | Threshold | Recall | False alarms | Use |
 |---|---|---|---|
-| P ≥ 0.50 | higher recall, 10 s countdown before alerting | — | driver-verified band |
+| P ≥ 0.50 | higher recall, 10 s countdown before alerting | - | driver-verified band |
 | **P ≥ 0.80** | **92.25 %** | **2.43 %** | shipped: immediate alert |
 | P ≥ 0.966 (tuned on validation) | 72.66 % | 0.59 % | conservative fleet setting |
 
@@ -320,7 +320,7 @@ point far below both curves.
 | Document V2 (200 ms, 8 features) | 0.9021 | 84.2 % | 83.1 % |
 | V1 rule (single point) | 0.7029 | 93.6 % | 73.9 % |
 
-### 7.4 Sensor ablation — what the gyroscope and GPS are worth
+### 7.4 Sensor ablation, what the gyroscope and GPS are worth
 
 | Inputs | Features | AP | Recall @0.8 | False alarms |
 |---|---|---|---|---|
@@ -328,10 +328,10 @@ point far below both curves.
 | **+ gyroscope (shipped)** | **37** | **0.9622** | **92.5 %** | **2.63 %** |
 | + GPS speed | 40 | 0.9677 | 93.4 % | 2.27 % |
 
-Same algorithm (XGBoost), same windows — the differences are attributable to the inputs alone. The
+Same algorithm (XGBoost), same windows, the differences are attributable to the inputs alone. The
 gyroscope is free. GPS costs a NEO-6M and is the recommended upgrade path.
 
-### 7.5 Window ablation — why 2.5 s, not 200 ms
+### 7.5 Window ablation, why 2.5 s, not 200 ms
 
 | Design | Window | Features | Model | AP |
 |---|---|---|---|---|
@@ -342,7 +342,7 @@ gyroscope is free. GPS costs a NEO-6M and is the recommended upgrade path.
 
 Changing only the classifier buys **+0.028 AP**; changing the window and feature vector buys a
 further **+0.032 AP**. The pre-impact context and the post-impact settling carry as much information
-as the impact peak — which is the reason for claim N3's window geometry.
+as the impact peak, which is the reason for claim N3's window geometry.
 
 ### 7.6 Crash detection by severity (the honest limit)
 
@@ -362,10 +362,10 @@ as the impact peak — which is the reason for claim N3's window geometry.
 | Heavy duty | 929 | 85.9 % |
 | Unrecorded | 249 | 90.8 % |
 
-Heavier vehicles absorb impact, so the same collision registers as a smaller jolt — a physically
+Heavier vehicles absorb impact, so the same collision registers as a smaller jolt, a physically
 expected result that a fleet deployment should account for by lowering the threshold per vehicle class.
 
-### 7.8 Model B — naming the jolt
+### 7.8 Model B, naming the jolt
 
 Leave-one-vehicle-out cross-validation on real road events. XGBoost selected: **macro F1 0.782,
 accuracy 95.9 %** (random forest 0.750 / 94.0 %, logistic regression 0.585 / 84.5 %).
@@ -394,7 +394,7 @@ Per-class F1: pothole/rough road 0.980, normal 0.799, harsh manoeuvre 0.768, spe
 | Feature + inference time | 24 µs per event on the development host; the sketch prints the on-device figure with every event |
 | Receiver firmware | 1,028,692 bytes (78 %) |
 
-**Numerical parity** (`verify_firmware.py`, 1,987 real windows — VZCrash events and PVS road events):
+**Numerical parity** (`verify_firmware.py`, 1,987 real windows, VZCrash events and PVS road events):
 
 ```
 feature max relative error:   1.49e-04
@@ -403,8 +403,8 @@ same alert decision (p>=.8):  100.0000%
 road model same class:        100.0000%
 ```
 
-The same computation is implemented three times — Python (training), C (firmware), JavaScript
-(dashboard) — and all three agree on every decision. This is what makes the reported accuracy a
+The same computation is implemented three times, Python (training), C (firmware), JavaScript
+(dashboard), and all three agree on every decision. This is what makes the reported accuracy a
 statement about the deployed device rather than about an offline notebook.
 
 ---
@@ -413,14 +413,14 @@ statement about the deployed device rather than about an offline notebook.
 
 | System | Parameters | AP | Runs on |
 |---|---|---|---|
-| VZCrash physics baseline | — | 0.896 | — |
+| VZCrash physics baseline | - | 0.896 | - |
 | Chronos-Bolt | 8.8 M | 0.966 | GPU/server |
 | CNN-Transformer | 1.3 M | 0.975 | GPU/server |
 | CNN-RNN | 1.7 M | 0.976 | GPU/server |
 | **This work** | **37 features, 48.9 k tree nodes** | **0.964** | **ESP32, 339 KB, 24 µs** |
 
 **Caveat, stated plainly:** the published figures are computed over every event in the dataset,
-while this system only sees events that cross its 0.45 g trigger — untriggered crashes are counted
+while this system only sees events that cross its 0.45 g trigger, untriggered crashes are counted
 as misses here, but the candidate set differs, so the comparison is indicative rather than strictly
 like-for-like. The defensible claim is that a microcontroller-sized model lands between the paper's
 physics baseline and its deep networks.
@@ -432,7 +432,7 @@ physics baseline and its deep networks.
 1. **Gentle crashes.** Below 1.5 g only 21.2 % are detected. The 0.50–0.80 countdown band is the
    mitigation, not a fix.
 2. **The negatives are hard by construction.** VZCrash's non-crash events were selected as
-   interesting — near misses, potholes, off-road manoeuvres. 2.43 % of *those* is not 2.43 % of
+   interesting, near misses, potholes, off-road manoeuvres. 2.43 % of *those* is not 2.43 % of
    driving time: over 200 s of ordinary recorded driving (119 classified jolts) the system raised
    no crash alert at all.
 3. **Model B does not transfer across sensors.** On unseen iPhone drives it recognised only 1 of 12
@@ -467,11 +467,11 @@ which `verify_firmware.py` checks.
 
 | Dataset | Use | Licence |
 |---|---|---|
-| **VZCrash** — Bianconcini, Monteagudo, Pjetri, Trinci, Taccari, *VZCrash: A Large-Scale IMU Dataset of Ego-Vehicle Crashes*, IEEE ITSC 2026 | Model A training and all crash metrics | CC BY-NC 4.0 (non-commercial) |
-| **PVS** — Menegazzo & von Wangenheim, UFSC | Model B: speed bumps, rough roads | CC BY-NC-ND 4.0 |
-| **Driver Behavior Dataset** — Ferreira et al., PLOS ONE 2017 | Model B: harsh manoeuvres | no licence stated |
+| **VZCrash**, Bianconcini, Monteagudo, Pjetri, Trinci, Taccari, *VZCrash: A Large-Scale IMU Dataset of Ego-Vehicle Crashes*, IEEE ITSC 2026 | Model A training and all crash metrics | CC BY-NC 4.0 (non-commercial) |
+| **PVS**, Menegazzo & von Wangenheim, UFSC | Model B: speed bumps, rough roads | CC BY-NC-ND 4.0 |
+| **Driver Behavior Dataset**, Ferreira et al., PLOS ONE 2017 | Model B: harsh manoeuvres | no licence stated |
 | **NHTSA Vehicle Crash Test Database** | first-generation crash model, N7 method | US Government, public domain |
-| **Real-World Pothole Drives** — W. Stading | external transfer test only | CC BY-NC 4.0 |
+| **Real-World Pothole Drives**, W. Stading | external transfer test only | CC BY-NC 4.0 |
 
 **Patent implication:** filing on the *method* (N1–N8) is unaffected by these licences. A commercial
 product must retrain Model A on owned or commercially licensed crash recordings; the pipeline is

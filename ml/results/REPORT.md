@@ -5,7 +5,7 @@
 
 The device runs **two models**:
 
-| | Model A — crash detector | Model B — road-event classifier |
+| | Model A, crash detector | Model B, road-event classifier |
 |---|---|---|
 | Decides | crash or not | which kind of non-crash jolt |
 | Trained on | **VZCrash**: 31,090 verified real on-road crashes (IEEE ITSC 2026) | PVS drives + Driver Behavior dataset |
@@ -49,7 +49,7 @@ At a stricter operating point tuned on validation for ≤ 0.5 % false alarms, Mo
 
 ## 3. Method
 
-1. **Trigger.** Gravity is tracked by an exponential moving average (α = 0.02); a window opens when the dynamic acceleration exceeds **0.45 g**. Events that never reach it are never classified — and count as misses in every number in this report. 100 % of VZCrash crash events do cross it.
+1. **Trigger.** Gravity is tracked by an exponential moving average (α = 0.02); a window opens when the dynamic acceleration exceeds **0.45 g**. Events that never reach it are never classified, and count as misses in every number in this report. 100 % of VZCrash crash events do cross it.
 2. **Window.** 1.0 s before and 1.5 s after the trigger (250 samples at 100 Hz). A much stronger jolt arriving while the window fills re-anchors it, so a pothole cannot mask a crash 200 ms later.
 3. **Features.** Gravity is estimated from the first 0.5 s and the motion is split into **vertical** (bumps, potholes) and **horizontal** (braking, impacts) parts, which makes the model independent of how the box is mounted: peaks, jerk, time above 0.5/1/2/4 g, horizontal ΔV, separated peaks (front and rear axle over a bump), suspension oscillation, post-event vibration and tilt, plus 7 gyroscope features (peak rate, yaw vs tilt rate, rotation through the impact, rotational energy).
 4. **Decision.** P(crash) ≥ 0.80 → LoRa `ALERT` immediately. 0.50–0.80 → 10 s buzzer countdown the driver can cancel. Otherwise Model B names the jolt and it is logged (optionally reported as a LoRa `EVENT`, which the receiver logs without sending an SMS).
@@ -76,7 +76,7 @@ Replacing only the classifier buys 0.028 AP; replacing the 200 ms window and fea
 | + gyroscope (**shipped**) | 37 | 0.9622 | 92.5 % | 2.63 % |
 | + GPS speed | 40 | 0.9677 | 93.4 % | 2.27 % |
 
-(XGBoost, so the three rows differ only by inputs.) The gyroscope is free — the MPU6050 already provides it. Wiring up the NEO-6M GPS and feeding speed change to the model is worth a further ~0.006 AP and about 0.4 points of false-alarm rate; the shipped firmware does not read GPS yet.
+(XGBoost, so the three rows differ only by inputs.) The gyroscope is free, the MPU6050 already provides it. Wiring up the NEO-6M GPS and feeding speed change to the model is worth a further ~0.006 AP and about 0.4 points of false-alarm rate; the shipped firmware does not read GPS yet.
 
 ## 4. All models compared
 
@@ -84,7 +84,7 @@ Per-event, test split. "Tuned" = threshold chosen on validation for ≤ 0.5 % fa
 
 | Model | Inputs | Event AP | Recall @0.8 | FA @0.8 | Recall @tuned | FA @tuned |
 |---|---|---|---|---|---|---|
-| V1 rule `|a| > 2.2 g` | accel | 0.7029 | 93.6 % | 6.98 % | — | — |
+| V1 rule `|a| > 2.2 g` | accel | 0.7029 | 93.6 % | 6.98 % | - | - |
 | Document V2: 200 ms + logistic | doc-200ms | 0.9021 | 84.3 % | 3.63 % | 44.9 % | 0.43 % |
 | Document V2 features + XGBoost | doc-200ms | 0.9305 | 88.6 % | 3.39 % | 55.6 % | 0.50 % |
 | Logistic Regression | accel+gyro | 0.9368 | 90.8 % | 3.42 % | 51.9 % | 0.47 % |
@@ -111,7 +111,7 @@ Detection rate at P ≥ 0.80, by how hard the impact actually was:
 
 By vehicle size: light 94.0 % (834), medium 94.7 % (2,203), heavy 85.9 % (929), unrecorded 90.8 % (249). Heavy vehicles absorb impacts, so the same collision registers as a smaller jolt.
 
-Gentle impacts remain the open problem: under 1.5 g a real crash and a hard pothole are close to indistinguishable from inertial data alone. The 0.50–0.80 countdown band exists for exactly this case — it asks the driver instead of staying silent.
+Gentle impacts remain the open problem: under 1.5 g a real crash and a hard pothole are close to indistinguishable from inertial data alone. The 0.50–0.80 countdown band exists for exactly this case, it asks the driver instead of staying silent.
 
 ## 6. Model B: naming the jolt
 
@@ -131,7 +131,7 @@ Speed bumps are the weak class (56 % recall, usually confused with rough road): 
 - **Compiles for ESP32** (arduino-cli, esp32 core 3.3.11, board `esp32:esp32:esp32`):
   - transmitter with both models: **658,987 bytes flash (50 %)**, 45,052 bytes RAM (13 %)
   - receiver: 1,028,692 bytes (78 %)
-- **C matches Python** (`verify_firmware.py`, 1,987 real windows — VZCrash events and PVS road events):
+- **C matches Python** (`verify_firmware.py`, 1,987 real windows, VZCrash events and PVS road events):
   - features agree to 1.5 × 10⁻⁴ relative error
   - crash probability agrees to 6.7 × 10⁻⁷
   - **alert decision identical on 100 % of windows**; road class identical on 100 %
@@ -141,7 +141,7 @@ Speed bumps are the weak class (56 % recall, usually confused with rough road): 
 ## 8. Limitations
 
 1. **Not measured on this hardware yet.** Everything is verified in simulation and on recorded data from other devices (dashcam IMUs, a dashboard MPU-9250). Numbers on your own ESP32 + MPU6050 may differ; recording a few labelled drives and re-running the pipeline is the way to check.
-2. **VZCrash negatives are hard on purpose** — near misses, potholes, off-road manoeuvres, harsh braking. A 2.43 % false-alarm rate on that set is not 2.43 % of driving time. On ordinary recorded driving (200 s of PVS drive 7, 119 jolts) the shipped model raises **no** crash alert at all.
+2. **VZCrash negatives are hard on purpose**, near misses, potholes, off-road manoeuvres, harsh braking. A 2.43 % false-alarm rate on that set is not 2.43 % of driving time. On ordinary recorded driving (200 s of PVS drive 7, 119 jolts) the shipped model raises **no** crash alert at all.
 3. **Gentle crashes under 1.5 g are mostly missed** (§5).
 4. **Model B does not transfer across sensors well.** On unseen iPhone drives it recognised only 1 of 12 confirmed potholes as a pothole, though it raised almost no false crash verdicts (1 in 252). Treat the bump-vs-pothole output as informative, not authoritative.
 5. **GPS is not wired in.** The +GPS model is measured but not deployed.
@@ -153,8 +153,8 @@ Patenting the **method** (orientation-invariant features, trigger and re-anchori
 
 | Dataset | Licence |
 |---|---|
-| VZCrash | CC BY-NC 4.0 — **non-commercial** |
-| PVS | CC BY-NC-ND 4.0 — non-commercial, no derivatives |
+| VZCrash | CC BY-NC 4.0, **non-commercial** |
+| PVS | CC BY-NC-ND 4.0, non-commercial, no derivatives |
 | Driver Behavior Dataset | No licence stated; ask the authors before commercial use |
 | NHTSA Crash Test Database | US Government work (public domain) |
 

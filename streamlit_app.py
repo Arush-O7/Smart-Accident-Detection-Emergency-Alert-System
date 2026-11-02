@@ -1,7 +1,6 @@
-"""Crash Verdict Console - Streamlit interface for the on-device crash classifier.
+"""Crash Verdict Console.
 
-Run locally:   pip install -r requirements.txt && streamlit run streamlit_app.py
-Hosted:        Streamlit Community Cloud, entry point streamlit_app.py (see app/README.md)
+    streamlit run streamlit_app.py
 """
 import json
 import time
@@ -64,13 +63,12 @@ best = comparison[comparison.model == VZ["selected"]].iloc[0]
 v1row = comparison[comparison.model.str.startswith("V1")].iloc[0]
 
 
-# ----------------------------------------------------------------- shared pieces
 def verdict_chip(p_crash):
     if p_crash >= ALERT_P:
-        return "🔴 CRASH — LoRa alert sent, SMS dispatched"
+        return "🔴 CRASH - LoRa alert sent, SMS dispatched"
     if p_crash >= VERIFY_P:
-        return "🟠 Possible crash — 10 s countdown, driver can cancel"
-    return "🟢 No crash — logged only"
+        return "🟠 Possible crash - 10 s countdown, driver can cancel"
+    return "🟢 No crash - logged only"
 
 
 def signal_chart(acc_window, height=260, trigger_line=True, t0=None, x_title="seconds from trigger"):
@@ -114,7 +112,7 @@ def road_bars(probs, height=None):
 def road_panel(probs, p_crash):
     """Model B only runs when Model A clears the jolt, exactly as on the ESP32."""
     if p_crash is not None and p_crash >= VERIFY_P:
-        st.caption("Not run: Model A flagged a possible crash, so the road classifier is skipped — "
+        st.caption("Not run: Model A flagged a possible crash, so the road classifier is skipped - "
                    "the same order the ESP32 uses.")
     else:
         st.altair_chart(road_bars(probs if probs is not None else np.zeros(len(ROAD))), width="stretch")
@@ -124,12 +122,11 @@ def crash_meter(p):
     df = pd.DataFrame({"p": [p]})
     bar = alt.Chart(df).mark_bar(color=RED if p >= VERIFY_P else GREEN, height=26).encode(
         x=alt.X("p:Q", scale=alt.Scale(domain=[0, 1]),
-                axis=alt.Axis(format="%", title="P(crash) — alert at the black line", titlePadding=8)))
+                axis=alt.Axis(format="%", title="P(crash) - alert at the black line", titlePadding=8)))
     mark = alt.Chart(pd.DataFrame({"x": [ALERT_P]})).mark_rule(color="#131a1f", strokeWidth=2).encode(x="x:Q")
     return alt.layer(bar, mark).properties(height=80)
 
 
-# ----------------------------------------------------------------- sidebar
 VIEWS = ["Overview", "Drive replay", "Event library", "Model comparison",
          "Test your own data", "How it runs on the ESP32"]
 
@@ -146,12 +143,11 @@ with st.sidebar:
     st.caption(f"Model A: {meta['models']['crash']['n_trees']} trees · "
                f"Model B: {meta['models']['road']['n_trees']} trees · both on-device")
 
-# ----------------------------------------------------------------- overview
 if page == "Overview":
     st.title("Crash, pothole or speed breaker?")
     st.markdown(
         "Every jolt above **0.45 g** wakes two models on the ESP32. **Model A** decides whether it was a crash, "
-        "from 30 accelerometer and 7 gyroscope features, trained on **VZCrash** — 31,090 verified real crashes. "
+        "from 30 accelerometer and 7 gyroscope features, trained on **VZCrash** - 31,090 verified real crashes. "
         "**Model B** then names what the jolt actually was. Everything here runs on data the models never saw.")
 
     c = st.columns(4)
@@ -167,14 +163,14 @@ if page == "Overview":
     with left:
         st.subheader("How a jolt is judged")
         st.markdown(f"""
-1. **Trigger** — gravity is tracked with an exponential average; a jolt above 0.45 g opens a 2.5 s window
+1. **Trigger** - gravity is tracked with an exponential average; a jolt above 0.45 g opens a 2.5 s window
    (1.0 s before, 1.5 s after). A stronger jolt mid-window re-anchors it, so a pothole cannot mask a crash.
-2. **Features** — the motion is split into **vertical** (bumps, potholes) and **horizontal** (braking, impacts)
+2. **Features** - the motion is split into **vertical** (bumps, potholes) and **horizontal** (braking, impacts)
    parts relative to gravity, so the verdict does not depend on how the box is mounted.
-3. **Model A** — P(crash) ≥ {ALERT_P:.2f} sends the LoRa alert at once; {VERIFY_P:.2f}–{ALERT_P:.2f} starts a
+3. **Model A** - P(crash) ≥ {ALERT_P:.2f} sends the LoRa alert at once; {VERIFY_P:.2f}–{ALERT_P:.2f} starts a
    10 s buzzer countdown the driver can cancel.
-4. **Model B** — anything below that gets a name: speed breaker, pothole / rough road, harsh manoeuvre or normal.
-5. **Rollover** — an independent physics guard fires after 3 s of tilt beyond 60°.
+4. **Model B** - anything below that gets a name: speed breaker, pothole / rough road, harsh manoeuvre or normal.
+5. **Rollover** - an independent physics guard fires after 3 s of tilt beyond 60°.
         """)
     with right:
         st.subheader("Measured against the field")
@@ -194,7 +190,6 @@ if page == "Overview":
             width="stretch")
         st.caption("Test split: 24,174 events, 4,221 real crashes, none seen during training.")
 
-# ----------------------------------------------------------------- replay
 elif page == "Drive replay":
     st.title("Drive replay")
     st.caption(meta["replay"]["source"])
@@ -226,7 +221,7 @@ elif page == "Drive replay":
             with cols[1]:
                 last = seen[-1] if seen else None
                 st.markdown("#### Model A · crash?")
-                st.markdown(verdict_chip(last["p_crash"]) if last else "⚪ Monitoring — waiting for a jolt")
+                st.markdown(verdict_chip(last["p_crash"]) if last else "⚪ Monitoring - waiting for a jolt")
                 st.altair_chart(crash_meter(last["p_crash"] if last else 0.0), width="stretch")
                 st.markdown("#### Model B · what kind of jolt")
                 road_panel(last["road"] if last else None, last["p_crash"] if last else None)
@@ -267,7 +262,6 @@ elif page == "Drive replay":
                      column_config={"P(crash)": st.column_config.ProgressColumn("P(crash)", min_value=0, max_value=1, format="%.3f")})
     st.info("The old rule fires on rough road; the AI classifies those jolts and stays silent, then flags the one real crash.")
 
-# ----------------------------------------------------------------- library
 elif page == "Event library":
     st.title("Event library")
     st.caption("Real events: VZCrash crashes, near misses and normal driving from the held-out test split, "
@@ -277,7 +271,7 @@ elif page == "Event library":
     for i, ev in enumerate(meta["events"]):
         p = verdicts[i]["p_crash"]
         mark = "🔴" if p >= ALERT_P else ("🟠" if p >= VERIFY_P else "🟢")
-        labels.append(f"{mark} {NICE.get(ev['truth'], ev['truth'])} — {ev['desc'][:70]}")
+        labels.append(f"{mark} {NICE.get(ev['truth'], ev['truth'])} - {ev['desc'][:70]}")
 
     kinds = ["All"] + sorted({e["truth"] for e in meta["events"]})
     kind = st.selectbox("Filter", kinds, format_func=lambda k: NICE.get(k, k))
@@ -311,7 +305,6 @@ elif page == "Event library":
     st.success(f"Across this library: {found} of {len(crashes)} real crashes flagged, "
                f"and the highest score on any non-crash event is {max(others):.3f}.")
 
-# ----------------------------------------------------------------- comparison
 elif page == "Model comparison":
     st.title("Model comparison")
     st.caption("Trained on the VZCrash train split, threshold tuned on validation, measured on the untouched test "
@@ -363,7 +356,7 @@ elif page == "Model comparison":
         cm = pd.DataFrame(meta["road"]["confusion"], index=[NICE[c] for c in ROAD], columns=[NICE[c] for c in ROAD])
         shares = cm.div(cm.sum(axis=1), axis=0)
 
-        def shade(col):  # row-normalised blue, no matplotlib needed
+        def shade(col):
             return [f"background-color: rgba(42, 120, 214, {0.85 * s:.2f}); color: {'white' if s > 0.55 else 'inherit'}"
                     for s in shares[col.name]]
 
@@ -376,14 +369,13 @@ elif page == "Model comparison":
         st.markdown("""
 - **The crashes are real.** VZCrash is 16 s of 100 Hz IMU data per event, labelled by three trained reviewers
   with dashcam footage. Nothing in the crash class is simulated.
-- **The negatives are hard on purpose** — near misses, potholes, harsh braking, off-road manoeuvres. A 2.4%
+- **The negatives are hard on purpose** - near misses, potholes, harsh braking, off-road manoeuvres. A 2.4%
   false-alarm rate on that set is not 2.4% of driving time: on ordinary recorded driving the model raises none.
 - **The trigger is part of the detector.** Events that never reach 0.45 g are never classified and count as misses.
 - **Model B is the weaker half:** PVS labels road quality per stretch, not per event, and holds only 95 bump
   crossings. It separates a bump from a crash reliably, a bump from rough road about half the time.
         """)
 
-# ----------------------------------------------------------------- upload
 elif page == "Test your own data":
     st.title("Test your own data")
     st.markdown("Upload a recording and the same trigger and models will run over it, exactly as they would "
@@ -403,15 +395,15 @@ elif page == "Test your own data":
         if any(c is None for c in acc_cols):
             numeric = raw.select_dtypes("number")
             acc_cols = list(numeric.columns[:3]) if numeric.shape[1] >= 3 else []
-            st.warning(f"No ax/ay/az headers found — using the first three numeric columns: {acc_cols}")
+            st.warning(f"No ax/ay/az headers found - using the first three numeric columns: {acc_cols}")
         if acc_cols:
             acc = raw[acc_cols].to_numpy(np.float32)
             if np.abs(acc).max() > 20:          # looks like m/s^2
                 acc /= 9.80665
-                st.info("Values look like m/s² — divided by 9.81 to get g.")
+                st.info("Values look like m/s² - divided by 9.81 to get g.")
             gyro_cols = [cols.get(k) for k in ("gx", "gy", "gz")]
             gyro = raw[gyro_cols].to_numpy(np.float32) if all(c is not None for c in gyro_cols) else np.zeros_like(acc)
-            data = (acc, gyro, f"{up.name} — {len(acc)} samples ({len(acc) / FS:.1f} s at 100 Hz)")
+            data = (acc, gyro, f"{up.name} - {len(acc)} samples ({len(acc) / FS:.1f} s at 100 Hz)")
     elif use_sample:
         data = (to_g(demo["replay_acc"]), to_dps(demo["replay_gyro"]), meta["replay"]["source"])
 
@@ -447,7 +439,6 @@ elif page == "Test your own data":
         st.info("Waiting for a file. On the transmitter, set `#define STREAM_RAW true`, capture the `R,ax,ay,az` "
                 "lines from the serial monitor, and save them as CSV with the header `ax,ay,az`.")
 
-# ----------------------------------------------------------------- firmware
 else:
     st.title("How it runs on the ESP32")
     c = st.columns(3)
@@ -479,5 +470,5 @@ else:
 6. The receiver (`Reciever_LORA/reciever_sms`) puts the AI verdict into the SMS: *"AI verified CRASH
    (91% confidence), impact 3.4g"*. Non-crash jolts arrive as `EVENT` packets and are logged without an SMS.
     """)
-    st.caption("Live USB streaming needs direct serial access, which a hosted app cannot have — use the HTML "
+    st.caption("Live USB streaming needs direct serial access, which a hosted app cannot have - use the HTML "
                "dashboard in `demo/index.html` (Chrome or Edge) for the live ESP32 view.")

@@ -1,12 +1,4 @@
-"""Flatten gradient-boosted tree ensembles into C arrays (ESP32) and JSON (web demo).
-
-Trees are stored in pre-order, so the "true" child is always the next node and only the "false"
-child index is kept. Thresholds are stored as float32 and adjusted so the float32 comparison in C
-gives exactly the same branch as the library's own comparison on float32 features:
-
-  XGBoost   goes left when  x <  threshold   (threshold is already float32)
-  LightGBM  goes left when  x <= threshold   (threshold is float64, so round it down)
-"""
+"""Flatten LightGBM / XGBoost trees into C arrays and JSON."""
 import json
 
 import numpy as np

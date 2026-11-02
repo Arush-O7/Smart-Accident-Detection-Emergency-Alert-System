@@ -1,4 +1,4 @@
-# Crash Verdict Console — Streamlit app
+# Crash Verdict Console, Streamlit app
 
 The web interface for the on-device crash classifier. It runs the **same models the ESP32 runs**:
 the flattened LightGBM and XGBoost trees exported by `ml/scripts/export_model.py`, evaluated with
@@ -25,7 +25,7 @@ Opens on http://localhost:8501. Views are shareable: `?view=Drive+replay`, `?vie
 
 ## Host it on Streamlit Community Cloud (free)
 
-The app is already sized for it — the whole payload is about 520 KB, and no dataset needs to ship.
+The app is already sized for it, the whole payload is about 520 KB, and no dataset needs to ship.
 
 1. **Push this repo to GitHub.** The app must be on a branch the cloud can read:
    ```bash
@@ -44,7 +44,7 @@ The app is already sized for it — the whole payload is about 520 KB, and no da
 Notes:
 - `.streamlit/config.toml` carries the theme; the cloud picks it up automatically.
 - Everything the app needs is committed. `ml/data/` (the 7.6 GB of datasets) is gitignored and is
-  **not** required to run or host the app — only to retrain.
+  **not** required to run or host the app, only to retrain.
 - If you fork rather than push to the original repo, deploy from your fork.
 
 ## Rebuild the app's data after retraining

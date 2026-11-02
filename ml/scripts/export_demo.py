@@ -1,15 +1,4 @@
-"""Build the dashboard data in demo/data/demo_data.js.
-
-Contents
-  replay   a real PVS drive (speed bumps, rough road) ending in a REAL VZCrash crash recording,
-           rotated into the drive's sensor frame. Every sample is recorded data.
-  events   a library of real events: VZCrash crashes / near-misses / normal driving from the
-           held-out test split, and PVS road events with the road model's cross-validated verdict.
-  results  the model comparison tables.
-
-The crash model never saw the VZCrash test split, and the road model never saw PVS vehicle 3, so
-every verdict shown in the demo is on unseen data.
-"""
+"""Write demo/data/demo_data.js for the HTML dashboard."""
 import json
 from pathlib import Path
 
@@ -136,7 +125,7 @@ def replay_stream():
     a, b = int(T0 * FS), int(T1 * FS)
     seg, seg_gyro, seg_speed = acc[a:b].astype(np.float64), gyro[a:b].astype(np.float64), speed[a:b]
 
-    # a real recorded crash from the held-out test split, strong enough to see on a plot
+    # pick a clearly visible crash from the test split
     crash = None
     pf = pq.ParquetFile(sorted(VZ.glob("test-*.parquet"))[0])
     for rg in range(pf.num_row_groups):
@@ -159,7 +148,7 @@ def replay_stream():
         if crash:
             break
 
-    # match the recorded crash to the drive's gravity direction, then hand over at the seam
+    # rotate crash into the drive's frame
     g_mean = seg[-300:].mean(axis=0)
     crash_acc = bd.rotate_onto(crash["acc"], g_mean)
     R_ = np.linalg.lstsq(crash["acc"] - crash["acc"].mean(axis=0), crash_acc - crash_acc.mean(axis=0), rcond=None)[0]

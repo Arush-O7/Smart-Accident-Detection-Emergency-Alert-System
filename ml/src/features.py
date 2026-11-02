@@ -1,13 +1,4 @@
-"""Orientation-invariant event features for crash vs road-anomaly classification.
-
-Input: one 250-sample window of 3-axis acceleration in g (gravity included), triggered as in
-the firmware. The sensor may be mounted in any orientation: gravity is estimated from the first
-0.5 s and the motion is split into a vertical part (bumps, potholes) and a horizontal part
-(braking, collisions).
-
-The loops are written the way the C version in firmware/crash_features.h is written, so the two
-produce the same numbers. Use float32 throughout for parity with the ESP32.
-"""
+"""Orientation-independent features for a 250-sample window (kept in sync with crash_features.h)."""
 import math
 
 import numpy as np
@@ -46,8 +37,7 @@ FEATURE_NAMES = [
     "sustained_h",      # max 200 ms mean of horizontal acceleration (g)
     "early_rms",        # rms of |dyn| in the 0.5 s after the trigger
 ]
-# Gyroscope and GPS-speed features, available from VZCrash (and from the MPU6050 / NEO-6M on the
-# transmitter). Appended after the 30 accelerometer features, so index 0..29 never change.
+# appended after the accel features so indices 0..29 stay the same
 GYRO_FEATURE_NAMES = [
     "w_peak",           # peak angular rate (deg/s)
     "w_mean_post",      # mean angular rate in the last 0.5 s
@@ -197,7 +187,6 @@ def extract_speed(speed_kmh_pre: float, speed_kmh_post: float) -> np.ndarray:
     return np.array([speed_kmh_pre, drop, drop / (speed_kmh_pre + 1.0)], dtype=np.float32)
 
 
-# --- Assessment-6 document baseline (Section 1.1 "Version 2"): 200 ms window, 8 features.
 PDF200_FEATURE_NAMES = [
     "A_peak",     # peak resultant acceleration (g), as the document's serial log prints it
     "w_peak",     # peak resultant angular rate (deg/s)

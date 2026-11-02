@@ -1,12 +1,4 @@
-"""Export the models and demo data for the Streamlit app (app/data/).
-
-The app runs the same flattened trees the ESP32 runs, so it needs numpy only - no xgboost,
-lightgbm or scikit-learn at runtime. That keeps the hosted app small and quick to start.
-
-  app/data/models.npz   both models as flat arrays (feat, thr, no, roots, bias)
-  app/data/demo.npz     the replay drive and the event library, as int16 sensor counts
-  app/data/meta.json    everything text: class names, event descriptions, result tables
-"""
+"""Export models and demo data to app/data/ for the Streamlit app."""
 import json
 from pathlib import Path
 

@@ -1,16 +1,6 @@
-"""Download every real-world dataset used to train and test the crash classifier.
+"""Download PVS, NHTSA crash tests, Driver Behavior and the pothole drives.
 
-Sources (all publicly downloadable, no login required):
-  1. PVS - Passive Vehicular Sensors (UFSC, Brazil). 9 drives, dashboard + body MPU-9250 at 100 Hz,
-     per-sample labels for speed bumps and road quality.            -> negatives (bumps, rough roads)
-  2. NHTSA Vehicle Crash Test Database (US DOT). Body-mounted accelerometer time histories
-     recorded during real crash tests (frontal, side, pole, rear, vehicle-to-vehicle).   -> crash pulses
-  3. Driver Behavior Dataset (Ferreira et al., PLOS ONE 2017). Smartphone IMU during aggressive
-     braking, turns and lane changes.                                -> harsh-manoeuvre negatives
-  4. Real-World Pothole Drives (W. Stading, Austin TX). iPhone IMU (logged at 50 Hz) with human-labelled
-     potholes. Used ONLY as an unseen external test set.            -> external false-positive test
-
-Usage:  python ml/scripts/download_data.py [--nhtsa-tests 700]
+Usage: python ml/scripts/download_data.py [--nhtsa-tests 700]
 """
 import argparse
 import json
@@ -68,7 +58,6 @@ def download(url, dest: Path):
     return dest
 
 
-# ---------------------------------------------------------------- PVS
 def fetch_pvs_drive(n):
     out = RAW / "pvs" / f"pvs{n}.parquet"
     if out.exists() and "acc_z_above_suspension" in pd.read_parquet(out).columns:
@@ -85,11 +74,9 @@ def fetch_pvs_drive(n):
     return out
 
 
-# ---------------------------------------------------------------- NHTSA
 CRASH_CONFIGS = {"VEHICLE INTO BARRIER", "IMPACTOR INTO VEHICLE", "VEHICLE INTO POLE", "VEHICLE INTO VEHICLE"}
 SKIP_TYPES = ("STATIC", "SLED", "PEDESTRIAN", "LOW RISK", "EJECTION", "COLLISION WARNING")
-# Rigid body locations away from the crush zone, in order of preference. These see roughly
-# what a chassis-mounted MPU6050 would see.
+# body locations away from the crush zone, closest to a chassis-mounted sensor
 BODY_LOCATIONS = ["VEHICLE CG", "SEAT - LEFT REAR", "SEAT - RIGHT REAR", "FLOORPAN - LEFT REAR",
                   "FLOORPAN - RIGHT REAR", "SILL - LEFT REAR", "SILL - RIGHT REAR", "TRUNK FLOOR - CENTER"]
 BAD_CHANNEL = ("FAIL", "WIRE", "CUT", "QUESTION", "NOT RETURN", "NO VALID", "BROKEN", "ANGULAR",
@@ -118,8 +105,7 @@ def select_tests(tests, n_target, seed=7):
             if t["testConfiguration"] in CRASH_CONFIGS and t["hasInstrumentationInfo"]
             and t["closingSpeed"] and not any(s in (t["testType"] or "") for s in SKIP_TYPES)]
     rng = random.Random(seed)
-    # Stratify by configuration and speed band so low-speed crashes are not drowned out
-    # by the (very common) 56 km/h NCAP frontal tests.
+    # stratify so the many 56 km/h NCAP frontal tests don't dominate
     strata = {}
     for t in pool:
         band = min(int(t["closingSpeed"] // 15), 5)
@@ -175,7 +161,7 @@ def fetch_nhtsa_test(t):
         for axis, curve in p["curves"].items():
             dest = folder / f"v{p['vehicleNo']}_{axis}.tsv"
             if download(ascii_url(tn, curve), dest) is None:
-                # newer tests live under a different static path; ask the API for it
+                # newer tests use a different path
                 detail = get(f"{NHTSA}/get-instrumentation-detail-info/{curve}/{tn}")
                 url = detail and (detail.json()["results"] or [{}])[0].get("asciiFile")
                 if not url or download(url, dest) is None:
@@ -189,7 +175,6 @@ def fetch_nhtsa_test(t):
     return meta
 
 
-# ---------------------------------------------------------------- smartphone datasets
 def fetch_driver_behavior():
     for trip in (16, 17, 20, 21):
         for f in ("acelerometro_terra.csv", "giroscopio_terra.csv", "groundTruth.csv"):

@@ -13,7 +13,7 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt -r ml/requirements.txt
 ```
 
-**Model A — crash detector (VZCrash, ~7.7 GB, gated).** Create a free HuggingFace account, accept the
+**Model A, crash detector (VZCrash, ~7.7 GB, gated).** Create a free HuggingFace account, accept the
 terms at https://huggingface.co/datasets/vzc-research-chapter/VZCrash, then:
 
 ```bash
@@ -23,7 +23,7 @@ python ml/scripts/build_vzcrash.py          # ~4 min: trigger windows + 40 featu
 python ml/scripts/train_vzcrash.py          # ~30 s: 12 models, official splits
 ```
 
-**Model B — road-event classifier (open datasets, ~400 MB).**
+**Model B, road-event classifier (open datasets, ~400 MB).**
 
 ```bash
 python ml/scripts/download_data.py          # PVS, NHTSA, DriverBehavior, potholes
